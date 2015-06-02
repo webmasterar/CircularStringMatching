@@ -16,64 +16,66 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "CircularStringMatching.h"
 
-void CircularStringMatching::calculateS(char *s, int i) {
+void CircularStringMatching::calculateS(char *s, int i)
+{
     int j, temp = i;
-
     for (j = this->q - 1; j >= 0; j--) {
-	    s[j] = this->alphabet[temp % this->sigma];
-	    temp = temp / this->sigma;
+	s[j] = this->alphabet[temp % this->sigma];
+	temp = temp / this->sigma;
     }
     s[this->q] = 0;
 }
 
-void CircularStringMatching::calculateU(char *pattern, char *u, int i){
+void CircularStringMatching::calculateU(char *pattern, char *u, int i)
+{
     int j;
     for (j = 0; j < 2 * this->q; j++) {
-	    u[j] = pattern[j + i];
+	u[j] = pattern[j + i];
     }
     u[2 * this->q] = 0;
 }
 
-int CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n) {
+int CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n)
+{
+    const int rows = 2;
+    int i, j;
+    int Emin = 100;
 
-	const int rows = 2;
-	int i, j;
-	int Emin = 100;
-
-	//initialize dynamic matrix D
-	int **D = new int*[rows];
-	for (i = 0; i < rows; i++){
-		D[i] = new int[n + 1];
-	}
-	for (j = 0; j <= n; j++){
-		D[0][j] = 0;
-	}
+    //initialize dynamic matrix D
+    int **D = new int*[rows];
+    for (i = 0; i < rows; i++) {
+	D[i] = new int[n + 1];
+    }
+    for (j = 0; j <= n; j++) {
+	D[0][j] = 0;
+    }
 
     //Dynamic Programming
-	for (i = 1; i <= m; i++) {
-		D[1][0] = D[0][0] + PENALTY_DEL;
-		for (j = 1; j <= n; j++) {
-			D[1][j] = min(D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]),
-                min(
-				    D[0][j] + PENALTY_DEL,
-				    D[1][j - 1] + PENALTY_INS
-				));
-		}
-
-		if (D[1][n] < Emin){
-			Emin = D[1][n];
-		}
-
-		//copies second vector to the first
-		if (i < m) {
-			for (j = 0; j <= n; j++) {
-				D[0][j] = D[1][j];
-			}
-		}
+    for (i = 1; i <= m; i++) {
+	D[1][0] = D[0][0] + PENALTY_DEL;
+	for (j = 1; j <= n; j++) {
+	    D[1][j] = min(
+		D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]), 
+		min(
+		    D[0][j] + PENALTY_DEL,
+		    D[1][j - 1] + PENALTY_INS
+		)
+	    );
 	}
+
+	if (D[1][n] < Emin){
+	    Emin = D[1][n];
+	}
+
+	//copies second vector to the first
+	if (i < m) {
+	    for (j = 0; j <= n; j++) {
+		D[0][j] = D[1][j];
+	    }
+	}
+    }
 
     //free memory
     for (i = 0; i < rows; i++) {
@@ -81,55 +83,56 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n
     }
     delete[] D;
 
-	return Emin;
+    return Emin;
 }
 
-void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n, int *outputVector) {
-	
-	const int rows = 2;
-	int i, j;
+void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n, int *outputVector)
+{
+    const int rows = 2;
+    int i, j;
 
-	//initialize dynamic matrix D
-	int **D = new int*[rows];
-	for (i = 0; i < rows; i++) {
-		D[i] = new int[n + 1];
-	}
-	for (j = 0; j <= n; j++) {
-		D[0][j] = 0;
-	}
+    //initialize dynamic matrix D
+    int **D = new int*[rows];
+    for (i = 0; i < rows; i++) {
+	D[i] = new int[n + 1];
+    }
+    for (j = 0; j <= n; j++) {
+	D[0][j] = 0;
+    }
 
-	for (i = 1; i <= m; i++) {
-		D[1][0] = D[0][0] + PENALTY_DEL;
-		for (j = 1; j <= n; j++) {
-			D[1][j] = min(D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]),
-                min(
-				    D[0][j] + PENALTY_DEL,
-				    D[1][j - 1] + PENALTY_INS
-				));
-		}
-
-		//copies second vector to the first
-		if (i < m) {
-			for (j = 0; j <= n; j++) {
-				D[0][j] = D[1][j];
-			}
-		}
+    for (i = 1; i <= m; i++) {
+	D[1][0] = D[0][0] + PENALTY_DEL;
+	for (j = 1; j <= n; j++) {
+	    D[1][j] = min(
+		D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]),
+		min(
+		    D[0][j] + PENALTY_DEL,
+		    D[1][j - 1] + PENALTY_INS
+		)
+	    );
 	}
 
-	//Print Matrix D
-	for (i = 0; i < rows; i++){
-		for (j = 0; j <= n; j++){
-			cout << D[i][j] << " ";
-		}
-		cout<<endl;
+	//copies second vector to the first
+	if (i < m) {
+	    for (j = 0; j <= n; j++) {
+		D[0][j] = D[1][j];
+	    }
+	}
+    }
+
+    //Print Matrix D
+    for (i = 0; i < rows; i++){
+	for (j = 0; j <= n; j++){
+	    cout << D[i][j] << " ";
 	}
 	cout << endl;
-	
+    }
+    cout << endl;
 
-	for (i = 0; i <= n; i++) {
-		outputVector[i] = D[1][i];
-	}
-	outputVector[n + 1] = 0;
+    for (i = 0; i <= n; i++) {
+	outputVector[i] = D[1][i];
+    }
+    outputVector[n + 1] = 0;
 
     //free memory
     for (i = 0; i < rows; i++) {
@@ -140,100 +143,186 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
 
 int CircularStringMatching::preprocessing(char *pattern, int windowSize)
 { 
-	int i, j, Emin, EminNew;
-	int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
+    int i, j, Emin, EminNew;
+    int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
 
-	//creates M vector and initialize all its values to 0
-	//size of M is 0..sigma^q - 1 //@todo double check this
+    //creates M vector and initialize all its values to 0
+    //size of M is 0..sigma^q - 1 //@todo double check this
     unsigned int * M;
     if ((M = (unsigned int *) calloc(sigmaPowerQ + 1, sizeof(unsigned int))) == NULL) {
         cerr << "Error: Could not assign M for preprocessing" << endl;
         return EXIT_FAILURE;
     }
 
-	char *s = new char[q + 1];
-	char *u = new char[2 * q + 1];
+    char *s = new char[q + 1];
+    char *u = new char[2 * q + 1];
 
-	for (i = 0; i < sigmaPowerQ; i++) {
-		this->calculateS(s, i);
-		this->calculateU(pattern, u, 0);
+    for (i = 0; i < sigmaPowerQ; i++) {
+	this->calculateS(s, i);
+	this->calculateU(pattern, u, 0);
 
-		Emin = this->EditDistance(u, 2 * this->q , s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
-		
-		for (j = 1; j <= windowSize - (2 * this->q); j++) {  //1..m-(2*q) times 
-			this->calculateU(pattern, u, j);
-			EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
-			//sets EminNew equal to the minimum edit distance between s and any prefix of u
-			if (EminNew < Emin) {
-				Emin = EminNew;
-			}
-		}
-		M[i] = Emin;
+	Emin = this->EditDistance(u, 2 * this->q , s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
+	
+	for (j = 1; j <= windowSize - (2 * this->q); j++) { //1..m-(2*q) times 
+	    this->calculateU(pattern, u, j);
+	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
+	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
+	    if (EminNew < Emin) {
+		Emin = EminNew;
+	    }
 	}
+	M[i] = Emin;
+    }
 
-	int total = 0;
-	for (i = 0; i < sigmaPowerQ; i++){
-		total = total + M[i];
-	}
+    int total = 0;
+    for (i = 0; i < sigmaPowerQ; i++) {
+	total = total + M[i];
+    }
 
     delete[] u;
     delete[] s;
     free(M);
 
-	return total;
+    return total;
 }
 
-void CircularStringMatching::checkVector(int *editDistanceVector, int j, vector<vector<int>> &outputVector) {
-	int i;
-	for (i = 1; i < this->n + 1; i++){
-		if (editDistanceVector[i] <= this->k){
-			vector<int> data;
-			data.push_back(j); //adds j
-			data.push_back(i); //adds i
-			data.push_back(editDistanceVector[i]); //adds k'
-			outputVector.push_back(data); //add j,i,vector[i] to the output vector
-		}
+void CircularStringMatching::checkVector(int *editDistanceVector, int j, vector<vector<int>> &outputVector)
+{
+    int i;
+    for (i = 1; i < this->n + 1; i++) {
+	if (editDistanceVector[i] <= this->k) {
+	    vector<int> data;
+	    data.push_back(j); //adds j
+	    data.push_back(i); //adds i
+	    data.push_back(editDistanceVector[i]); //adds k'
+	    outputVector.push_back(data); //add j,i,vector[i] to the output vector
 	}
+    }
 }
 
-void CircularStringMatching::verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector) {
-	
-	int i;
-	int *editDistanceVector = new int[n + 2];
+void CircularStringMatching::verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector)
+{
+    int i;
+    int * editDistanceVector = new int[n + 2];
 
+    EditDistance(pattern, m, text, n, editDistanceVector);
+    checkVector(editDistanceVector, 0, outputVector);
+    rotate(pattern, pattern + 1, pattern + m); //rotates pattern by one position //@todo find out where rotate is
+
+    for (i = 1; i < m; i++) {
 	EditDistance(pattern, m, text, n, editDistanceVector);
-	checkVector(editDistanceVector, 0, outputVector);
-	rotate(pattern, pattern + 1, pattern + m); //rotates pattern by one position //@todo find out where rotate is
-
-	for (i = 1; i < m; i++) {
-		EditDistance(pattern, m, text, n, editDistanceVector);
-		checkVector(editDistanceVector, i, outputVector);
-		rotate(pattern, pattern + 1, pattern + m);
-	}
+	checkVector(editDistanceVector, i, outputVector);
+	rotate(pattern, pattern + 1, pattern + m);
+    }
 
     delete[] editDistanceVector;
 }
 
-void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector) {
-	int i;
-	cout << "rotation j	" << "	position i	" << "	number of mismatches	" << endl;
-	for (i = 0; i < outputVector.size(); i++) {
-		cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
-	}
+void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector)
+{
+    int i;
+    cout << "rotation j	" << "	position i	" << "	number of mismatches	" << endl;
+    for (i = 0; i < outputVector.size(); i++) {
+	cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
+    }
 }
 
-void CircularStringMatching::calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int &windowSize, int &qGramBackwards) {
-	int i;
-	for (i = 0; i < this->q + qGramBackwards - 1; i++) {
-		windowBackwards[i] = window[windowSize - (this->q + qGramBackwards - 1) + i];
-	}
-	for (i = this->q + qGramBackwards - 1; i < windowBackwardsSize; i++) {
-		windowBackwards[i] = windowBackwards[i - ((this->q + qGramBackwards) - 1)];
-	}
-	windowBackwards[2 * (this->q + qGramBackwards) - 1] = 0;
+void CircularStringMatching::calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards)
+{
+    int i;
+    for (i = 0; i < this->q + qGramBackwards - 1; i++) {
+	windowBackwards[i] = window[windowSize - (this->q + qGramBackwards - 1) + i];
+    }
+    for (i = this->q + qGramBackwards - 1; i < windowBackwardsSize; i++) {
+	windowBackwards[i] = windowBackwards[i - ((this->q + qGramBackwards) - 1)];
+    }
+    windowBackwards[2 * (this->q + qGramBackwards) - 1] = 0;
 }
 
-void CircularStringMatching::run() {
+int CircularStringMatching::run()
+{
+    int i, j, k;
+    int shift, qGramBackwards, windowBackwardsSize;
 
+    //holds rotation of pattern, position of occurence and number of mismatches
+    vector<vector<int>> outputVector;
+
+    qGramBackwards = ceil(1 + (this->k / (this->c * this->q)));
+
+    windowBackwardsSize = 2 * ((this->q + qGramBackwards) - 1) - 1;
+
+    cout << this->q << " " << qGramBackwards << endl;
+    cout << ceil(this->m - this->k - (this->q + this->k / this->c)) << endl;
+
+    char * dynPattern = new char[this->m + 1];
+    char * window = new char[this->windowSize + 1];
+    char * windowBackwards = new char[2 * (this->q + qGramBackwards)];
+
+    //store pattern in array
+    for (i = 0; i < this->m; i++) {
+	dynPattern[i] = pattern[i];
+    }
+    dynPattern[this->m] = 0;
+
+    j = 0;
+    while ((j + this->windowSize) <= this->n) {
+	for (i = 0; i < this->windowSize; i++) {
+	    window[i] = this->text[j+i];
+	}
+	j = j + this->windowSize;
+	
+	calculateWindowBackwards(windowBackwards, windowBackwardsSize, window, (int)this->windowSize, qGramBackwards);
+	
+	cout << preprocessing(windowBackwards, windowBackwardsSize) << endl;
+
+	if (preprocessing(windowBackwards, windowBackwardsSize) > this->k) {
+	    shift = ceil(this->m - this->k - (this->q + this->k / this->c));
+	} else {
+	    verification(dynPattern, this->m, window, this->windowSize, outputVector); 
+	    shift = this->m - this->k;
+	}
+
+	//print window
+	for (k = 0; k < this->windowSize; k++) {
+	    cout << window[k];
+	}
+	cout << endl;
+
+	for (k = 0; k < windowBackwardsSize; k++) {
+	    cout << windowBackwards[k];
+	}
+	cout << endl;
+
+	j = (j + shift) - this->windowSize;
+    }
+
+    //final window in case it does not reach the end
+    if (j < this->n) {
+	for (i = 0; i < this->windowSize; i++) {
+	    window[i] = this->text[this->n - this->windowSize + i];
+	}
+	calculateWindowBackwards(windowBackwards, windowBackwardsSize, window, (int)this->windowSize, qGramBackwards);
+
+	cout << preprocessing(windowBackwards, windowBackwardsSize) << endl;
+	if (preprocessing(windowBackwards, windowBackwardsSize) <= this->k) {
+	    verification(dynPattern, this->m, window, this->windowSize, outputVector);
+	}
+	//print window
+	for (k = 0; k < this->windowSize; k++) {
+	    cout << window[k];
+	}
+	cout << endl;
+
+	for (k = 0; k < windowBackwardsSize; k++) {
+	    cout << windowBackwards[k];
+	}
+	cout << endl;
+    }
+
+    //clear memory
+    delete[] dynPattern;
+    delete[] window;
+    delete[] windowBackwards;
+
+    return EXIT_SUCCESS;
 }
-

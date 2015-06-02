@@ -37,7 +37,7 @@ private:
     /**
      * @var alphabet The DNA alphabet - a, c, g and t
      */
-    const char * alphabet[] = {'a', 'c', 'g', 't'};
+    char alphabet[4];
     /**
      * @var sigma The size of the alphabet
      */
@@ -86,7 +86,7 @@ private:
      * @param b
      * @return 0 if a and b match, otherwise the substitution penalty
      */
-    unsigned int delta(char a, char b)
+    int delta(char a, char b)
     {
         return (a == b) ? 0 : PENALTY_SUB;
     }
@@ -145,7 +145,7 @@ private:
      * @param j
      * @param outputVector
      */
-    void CircularStringMatching::checkVector(int *editDistanceVector, int j, vector<vector<int>> &outputVector);
+    void checkVector(int *editDistanceVector, int j, vector<vector<int>> &outputVector);
 
     /**
      * @todo Describe
@@ -175,7 +175,7 @@ private:
      * @param windowSize
      * @param qGramBackwards
      */
-    void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int &windowSize, int &qGramBackwards);
+    void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards);
 
 public:
 
@@ -191,6 +191,10 @@ public:
      */
     CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, unsigned int d)
     {
+	this->alphabet[0] = 'a';
+	this->alphabet[1] = 'c';
+	this->alphabet[2] = 'g';
+	this->alphabet[3] = 't';
         this->pattern = pattern;
         this->m = m;
         this->text = text;
@@ -204,8 +208,7 @@ public:
     /**
      * Run the algorithm
      */
-    void run();
-}
+    int run();
+};
 
 #endif
-

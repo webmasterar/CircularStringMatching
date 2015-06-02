@@ -22,19 +22,18 @@
 #include <string.h>
 #include "CircularStringMatching.h"
 
-int main ( int argc, char** argv ) {
-
-    unsigned char* info = "The valid options for Circular String Matching (csm) are:\n"
-                          "-t\tRequired. The text to search through\n"
-                          "-f\tOptional. File for -t if -t won't do\n"
-                          "-p\tRequired. The pattern you are searching for\n"
-                          "-l\tOptional. File for -p if -p won't do\n"
-                          "-k\tOptional. Maximum error, e.g. 2. Default := 0\n";
-    unsigned char * t = "";
-    unsigned char * p = "";
+int main ( int argc, char** argv )
+{
+    const char * info = "The valid options for Circular String Matching (csm) are:\n"
+			"-t\tRequired. The text to search through\n"
+			"-f\tOptional. File for -t if -t won't do\n"
+			"-p\tRequired. The pattern you are searching for\n"
+			"-l\tOptional. File for -p if -p won't do\n"
+			"-k\tOptional. Maximum error, e.g. 2. Default := 0\n";
+    char * t, * p;
     unsigned int k = 0;
     FILE * ft, * fp;
-    
+
     unsigned int i;
     for ( i = 1; i < argc; i++ ) {
         if ( '-' == (int)argv[i][0] ) {
@@ -42,7 +41,7 @@ int main ( int argc, char** argv ) {
                 case 't':
                     t = argv[i + 1];
                     break;
-                    
+
                 case 'f':
                     if ( ( ft = fopen ( argv[i + 1], "r" ) ) == NULL ) {
                         fprintf( stderr, "Input file f could not be opened!\n");
@@ -51,18 +50,18 @@ int main ( int argc, char** argv ) {
                         fseek ( ft, 0, SEEK_END );
                         unsigned long length = ftell ( ft );
                         fseek ( ft, 0, SEEK_SET );
-                        t = malloc ( length );
+                        t = (char *) malloc ( length );
                         if ( t ) {
                             fread ( t, 1, length, ft );
                         }
-                        close ( ft );
+                        fclose ( ft );
                     }
                     break;
-                    
+
                 case 'p':
                     p = argv[i + 1];
                     break;
-                    
+
                 case 'l':
                     if ( ( fp = fopen ( argv[i + 1], "r" ) ) == NULL ) {
                         fprintf( stderr, "Input file l could not be opened!\n");
@@ -71,14 +70,14 @@ int main ( int argc, char** argv ) {
                         fseek ( fp, 0, SEEK_END );
                         unsigned long length = ftell ( fp );
                         fseek ( fp, 0, SEEK_SET );
-                        p = malloc ( length );
+                        p = (char *) malloc ( length );
                         if ( p ) {
                             fread ( p, 1, length, fp );
                         }
-                        close ( fp );
+                        fclose ( fp );
                     }
                     break;
-                    
+
                 case 'k':
                     k = (unsigned int) atoi( argv[i + 1] );
                     break;
@@ -90,111 +89,27 @@ int main ( int argc, char** argv ) {
             }
         }
     }
-    
+
     unsigned int n = strlen ( t );
     unsigned int m = strlen ( p );
-    
+
     if ( n == 0 || m == 0 ) {
         fprintf( stderr, "Command line options missing!\n");
         printf ( "%s", info );
         return ( EXIT_FAILURE );
     }
+
+    string pattern = string(p);
+    string text = string(t);
+
+    //Run CircularStringMatching
+    CircularStringMatching csm(pattern, m, text, n, k, 1);
     
-	string pattern = string(p);
-	string text = string(t);
+    int run = csm.run();
+    
+    if (run == EXIT_FAILURE) {
+	cerr << "Circular String Matching process failed... exiting." << endl;
+    }
 
-    //initialize the object
-    CircularStringMatching csm(pattern, m, text, n, k, 0);
-
-    /*
-     *
-     * The code below here would go into the run() method
-     * @todo copy it accross and finish up
-     *
-     */
-
-	int j,l; //counters
-	int windowSize, shift, qGramBackwards, q, windowBackwardsSize;
-
-	vector<vector<int>> outputVector; //it will hold information of rotation of patern, position of occurence and number of mismatches
-
-	windowSize = m - k;
-
-	q = ceil(((3 * (log(m) / log(sigma))) + (log(k) / log(sigma))) / d);
-	qGramBackwards = ceil(1 + (k / (c*q)));
-
-	windowBackwardsSize = 2 * ((q + qGramBackwards) - 1) - 1;
-
-	cout << q << " " << qGramBackwards << endl;
-	cout << ceil(m - k - (q + k / c)) << endl;
-
-	char *dynPattern = new char[m + 1];
-	char *window = new char[windowSize + 1];
-	char *windowBackwards = new char[2 * (q + qGramBackwards)]; //q + qGramBackwards - 1
-	//int *editDistanceVector = new int[n + 2];
-	
-	//store pattern in array
-	for (i = 0; i < m; i++){
-		dynPattern[i] = pattern[i];
-	}
-	dynPattern[m] = 0;
-	
-	j = 0;
-	while ((j + windowSize) <= n){
-
-		for (i = 0; i < windowSize; i++){
-			window[i] = text[j+i];
-		}
-		j = j + windowSize;
-
-		calculateWindowBackwards(windowBackwards, windowBackwardsSize, window, windowSize, qGramBackwards);
-		cout << preprocessing(windowBackwards, windowBackwardsSize) << endl;
-
-		if (preprocessing(windowBackwards, windowBackwardsSize) > k){
-			shift = ceil(m - k - (q + k / c));
-		}
-		else{
-			verification(dynPattern, m, window, windowSize, outputVector); 
-			shift = m - k;
-		}
-
-		//print window
-		for (t = 0; t < windowSize; t++){
-			cout << window[t];
-		}
-		cout << endl;
-
-		for (t = 0; t < windowBackwardsSize; t++){
-			cout << windowBackwards[t];
-		}
-		cout << endl;
-
-		j = (j + shift) - windowSize;
-	}
-
-	//final window in case it does not reach the end
-	if (j < n){
-		for (i = 0; i < windowSize; i++){
-			window[i] = text[n - windowSize + i];
-		}
-		calculateWindowBackwards(windowBackwards, windowBackwardsSize, window, windowSize, qGramBackwards);
-		
-		cout << preprocessing(windowBackwards, windowBackwardsSize, q) << endl;
-		if (preprocessing(windowBackwards, windowBackwardsSize, q) <= k){
-			verification(dynPattern, m, window, windowSize, outputVector);
-		}
-		//print window
-		for (l = 0; l < windowSize; l++){
-			cout << window[l];
-		}
-		cout << endl;
-
-		for (l = 0; l < windowBackwardsSize; l++){
-			cout << windowBackwards[l];
-		}
-		cout << endl;
-	}
-
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
-
