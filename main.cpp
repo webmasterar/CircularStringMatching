@@ -29,8 +29,10 @@ int main ( int argc, char** argv )
 			"-f\tOptional. File for -t if -t won't do\n"
 			"-p\tRequired. The pattern you are searching for\n"
 			"-l\tOptional. File for -p if -p won't do\n"
-			"-k\tOptional. Maximum error, e.g. 2. Default := 0\n";
-    char * t, * p;
+			"-k\tOptional. Maximum error, e.g. 2. Default := 0\n"
+			"-h\tOptional. This help message\n";
+    char * t = (char *) "";
+    char * p = (char *) "";
     unsigned int k = 0;
     FILE * ft, * fp;
 
@@ -81,7 +83,12 @@ int main ( int argc, char** argv )
                 case 'k':
                     k = (unsigned int) atoi( argv[i + 1] );
                     break;
-                    
+
+                case 'h':
+                    printf ( "%s", info );
+                    return EXIT_SUCCESS;
+                    break;
+
                 default:
                     fprintf( stderr, "Invalid option '-%c' supplied!\n", argv[i][1] );
                     printf ( "%s", info );
@@ -90,10 +97,10 @@ int main ( int argc, char** argv )
         }
     }
 
-    unsigned int n = strlen ( t );
-    unsigned int m = strlen ( p );
+    unsigned int n = strlen(t);
+    unsigned int m = strlen(p);
 
-    if ( n == 0 || m == 0 ) {
+    if (n == 0 || m == 0) {
         fprintf( stderr, "Command line options missing!\n");
         printf ( "%s", info );
         return ( EXIT_FAILURE );
@@ -102,13 +109,13 @@ int main ( int argc, char** argv )
     string pattern = string(p);
     string text = string(t);
 
-    //Run CircularStringMatching
-    CircularStringMatching csm(pattern, m, text, n, k, 1);
-    
+    //Run CircularStringMatching but first double up the text
+    CircularStringMatching csm(pattern, m, text + text, 2 * n, k);
     int run = csm.run();
     
     if (run == EXIT_FAILURE) {
 	cerr << "Circular String Matching process failed... exiting." << endl;
+	return run;
     }
 
     return EXIT_SUCCESS;

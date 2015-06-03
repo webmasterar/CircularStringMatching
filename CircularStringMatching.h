@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <string>
+#include <string.h>
 #include <vector>
 #include <algorithm>
 #include <math.h>
@@ -41,11 +42,11 @@ private:
     /**
      * @var sigma The size of the alphabet
      */
-    const unsigned int sigma = 4;
+    const int sigma = 4;
     /**
      * @var d
      */
-    const double d = 1.1;
+    double d;
     /**
      * @var c
      */
@@ -75,9 +76,13 @@ private:
      */
     unsigned int q;
     /**
-     * @var windowSize
+     * @var verifiedWindowSize The maximum positions to move the window if verified
      */
-    unsigned int windowSize;
+    unsigned int verifiedWindowShift;
+    /**
+     * @var unverifiedWindowSize The maximum positions to move the window if unverified
+     */
+    unsigned int unverifiedWindowShift;
 
     /**
      * Compares characters a and b and returns 0 if they match or the substitution penalty
@@ -177,19 +182,33 @@ private:
      */
     void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards);
 
+    /**
+     * Rotates a given cstring
+     * @param x a cstring
+     * @param offset
+     * @param rotation returned rotated string
+     */
+    unsigned int rotate(char * x, int offset, char * rotation)
+    {
+	unsigned int m = strlen ( ( char * ) x );
+	memmove ( &rotation[0], &x[offset], m - offset );
+	memmove ( &rotation[m - offset], &x[0], offset );
+	rotation[m] = '\0';
+	return 1;
+    }
+
 public:
 
     /**
-     * The Circular String Matching class
+     * The Circular (DNA) String Matching class
      *
      * @param pattern
      * @param m The length of the pattern
-     * @param text
-     * @param n The length of the text
+     * @param text Assumes it is passed in doubled
+     * @param n The length of the text (assumes it is doubled - actual length of text)
      * @param k The maximum number of errors permitted before skipping a window (inclusive)
-     * @param d
      */
-    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, unsigned int d)
+    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k)
     {
 	this->alphabet[0] = 'a';
 	this->alphabet[1] = 'c';
@@ -200,9 +219,21 @@ public:
         this->text = text;
         this->n = n;
         this->k = k;
-        this->windowSize = this->m - this->k;
-        this->q = (unsigned int) ceil( ((3 * (log(this->m) / log(this->sigma))) + (log(this->k) / log(this->sigma))) / d ); //@todo Question: What is d?
-        this->c = abs(1 - (exp(1) / sqrt(this->sigma)));
+
+	this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
+	cout << "c: " << c << endl;
+
+	this->d = 1.1; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
+	cout << "d: " << d << endl;
+
+	double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
+        this->q = (unsigned int) ceil( ((3 * (log(this->m) / log(this->sigma))) + (logK / log(this->sigma))) / this->d ); //IX
+	cout << "q: " << q << endl;
+
+        this->verifiedWindowShift = this->m - this->k; //VIII
+        cout << "vw: " << this->verifiedWindowShift << endl;
+	this->unverifiedWindowShift = (unsigned int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
+	cout << "uvw: " << this->unverifiedWindowShift << endl;
     }
 
     /**
