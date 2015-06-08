@@ -109,8 +109,7 @@ int main ( int argc, char** argv )
     string pattern = string(p);
     string text = string(t);
 
-    //Run CircularStringMatching but first double up the text
-    CircularStringMatching csm(pattern, m, text + text, 2 * n, k);
+    CircularStringMatching csm(pattern, m, text, n, k);
     int run = csm.run();
     
     if (run == EXIT_FAILURE) {

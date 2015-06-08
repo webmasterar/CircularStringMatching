@@ -83,6 +83,10 @@ private:
      * @var unverifiedWindowSize The maximum positions to move the window if unverified
      */
     unsigned int unverifiedWindowShift;
+    /**
+     * @var M The M array which holds the edit distances of preprocessing the pattern
+     */
+    unsigned int * M;
 
     /**
      * Compares characters a and b and returns 0 if they match or the substitution penalty
@@ -204,8 +208,8 @@ public:
      *
      * @param pattern
      * @param m The length of the pattern
-     * @param text Assumes it is passed in doubled
-     * @param n The length of the text (assumes it is doubled - actual length of text)
+     * @param text
+     * @param n The length of the text
      * @param k The maximum number of errors permitted before skipping a window (inclusive)
      */
     CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k)
@@ -234,6 +238,14 @@ public:
         cout << "vw: " << this->verifiedWindowShift << endl;
 	this->unverifiedWindowShift = (unsigned int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
 	cout << "uvw: " << this->unverifiedWindowShift << endl;
+    }
+    
+    /**
+     * Free memory
+     */
+    ~CircularStringMatching()
+    {
+	free(this->M);
     }
 
     /**

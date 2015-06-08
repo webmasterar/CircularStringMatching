@@ -142,14 +142,12 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
 }
 
 int CircularStringMatching::preprocessing(char *pattern, int windowSize)
-{ 
+{
     int i, j, Emin, EminNew;
     int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
 
     //creates M vector and initialize all its values to 0
-    //size of M is 0..sigma^q - 1 //@todo double check this
-    unsigned int * M;
-    if ((M = (unsigned int *) calloc(sigmaPowerQ + 1, sizeof(unsigned int))) == NULL) {
+    if ((this->M = (unsigned int *) calloc(sigmaPowerQ, sizeof(unsigned int))) == NULL) {
         cerr << "Error: Could not assign M for preprocessing" << endl;
         return EXIT_FAILURE;
     }
@@ -171,17 +169,23 @@ int CircularStringMatching::preprocessing(char *pattern, int windowSize)
 		Emin = EminNew;
 	    }
 	}
-	M[i] = Emin;
+	this->M[i] = Emin;
     }
 
+    /*
+     * 
+     * I don't think we need a total
+     * 
+     */
+    
+    
     int total = 0;
     for (i = 0; i < sigmaPowerQ; i++) {
-	total = total + M[i];
+	total = total + this->M[i]; 
     }
 
     delete[] u;
     delete[] s;
-    free(M);
 
     return total;
 }
