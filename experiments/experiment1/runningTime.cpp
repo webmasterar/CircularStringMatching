@@ -2,6 +2,7 @@
 #include <fstream>	// I/O files
 #include <time.h>	// clock library that includes clock_t, clock(), CLOCKS_PER_SEC
 #include <string>
+#include <stdlib.h>
 using namespace std;
 
 
@@ -32,18 +33,17 @@ int main(){
 	
 	runningTimesFile.open("runningTimes.txt");  //open a file
 	patternLengthFile.open("patternLengthFile.txt"); //open file
+	char cmd[2 * n + 25];
+	cmd[2 * n + 25 - 1] = '\0';
 	
 	do{
 		cout<<m<<endl;
-		t=clock(); //sets t equal to the clock
 		
-		//main program starts here
-		cout << "Pattern: " << pattern <<endl;//call program with patern and text
-		for(i=0; i<=m*10; i++){
-			cout<<i;
-		}
-		cout<<endl;
-		//main program ends here
+		sprintf(cmd, "./../../csm -t %s -p %s -k %d", text.c_str(), pattern.c_str(), 1);
+		
+		t=clock(); //sets t equal to the clock
+
+		system(cmd);
 		
 		t=clock() - t; //sets t equal to the differnce of intial clock value and current clock value 
 	
