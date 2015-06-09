@@ -36,9 +36,13 @@ class CircularStringMatching
 {
 private:
     /**
-     * @var alphabet The DNA alphabet - a, c, g and t
+     * @var alphabet The numerical representation of the DNA alphabet - a=0, c=1, g=2 and t=3
      */
-    char alphabet[4];
+    unsigned int alphabet[127];
+    /**
+     * @var antiAlphabet The char representation of the DNA alphabet - 0=a, 1=c, 2=g and 3=t
+     */
+    char antiAlphabet[4];
     /**
      * @var sigma The size of the alphabet
      */
@@ -154,7 +158,7 @@ private:
      * @param j
      * @param outputVector
      */
-    void checkVector(int *editDistanceVector, int j, vector<vector<int>> &outputVector);
+    void checkVector(int *editDistanceVector, int n, int j, vector<vector<int>> &outputVector);
 
     /**
      * @todo Describe
@@ -184,22 +188,24 @@ private:
      * @param windowSize
      * @param qGramBackwards
      */
-    void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards);
+    //void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards);
 
     /**
      * Rotates a given cstring
+     * 
      * @param x a cstring
      * @param offset
      * @param rotation returned rotated string
      */
-    unsigned int rotate(char * x, int offset, char * rotation)
-    {
-	unsigned int m = strlen ( ( char * ) x );
-	memmove ( &rotation[0], &x[offset], m - offset );
-	memmove ( &rotation[m - offset], &x[0], offset );
-	rotation[m] = '\0';
-	return 1;
-    }
+    unsigned int rotate(char * x, int offset, char * rotation);
+    
+    /**
+     * Returns the numerical representation of a string qgram
+     * 
+     * @param qgram A qgram char array
+     * @return The numerical qgram
+     */
+    unsigned int getQIndex(char * qgram);
 
 public:
 
@@ -212,33 +218,7 @@ public:
      * @param n The length of the text
      * @param k The maximum number of errors permitted before skipping a window (inclusive)
      */
-    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k)
-    {
-	this->alphabet[0] = 'a';
-	this->alphabet[1] = 'c';
-	this->alphabet[2] = 'g';
-	this->alphabet[3] = 't';
-        this->pattern = pattern;
-        this->m = m;
-        this->text = text;
-        this->n = n;
-        this->k = k;
-
-	this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
-	cout << "c: " << c << endl;
-
-	this->d = 1.1; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
-	cout << "d: " << d << endl;
-
-	double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
-        this->q = (unsigned int) ceil( ((3 * (log(this->m) / log(this->sigma))) + (logK / log(this->sigma))) / this->d ); //IX
-	cout << "q: " << q << endl;
-
-        this->verifiedWindowShift = this->m - this->k; //VIII
-        cout << "vw: " << this->verifiedWindowShift << endl;
-	this->unverifiedWindowShift = (unsigned int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
-	cout << "uvw: " << this->unverifiedWindowShift << endl;
-    }
+    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k);
     
     /**
      * Free memory
