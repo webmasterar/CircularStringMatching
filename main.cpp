@@ -100,21 +100,27 @@ int main ( int argc, char** argv )
     unsigned int n = strlen(t);
     unsigned int m = strlen(p);
 
-    if (n == 0 || m == 0) {
+    if (n == 0 || m == 0)
+    {
         fprintf( stderr, "Command line options missing!\n");
         printf ( "%s", info );
         return ( EXIT_FAILURE );
     }
+    else
+    {
+	string pattern = string(p);
+	string text = string(t);
 
-    string pattern = string(p);
-    string text = string(t);
+	CircularStringMatching csm(pattern, m, text, n, k);
+	int run = csm.run();
 
-    CircularStringMatching csm(pattern, m, text, n, k);
-    int run = csm.run();
-    
-    if (run == EXIT_FAILURE) {
-	cerr << "Circular String Matching process failed... exiting." << endl;
-	return run;
+	free(p);
+	free(t);
+
+	if (run == EXIT_FAILURE) {
+	    cerr << "Circular String Matching process failed... exiting." << endl;
+	    return run;
+	}
     }
 
     return EXIT_SUCCESS;

@@ -24,6 +24,7 @@
 #include <string.h>
 #include <vector>
 #include <algorithm>
+#include <limits.h>
 #include <math.h>
 
 #define PENALTY_DEL 1
@@ -82,11 +83,11 @@ private:
     /**
      * @var verifiedWindowSize The maximum positions to move the window if verified
      */
-    unsigned int verifiedWindowShift;
+    int verifiedWindowShift;
     /**
      * @var unverifiedWindowSize The maximum positions to move the window if unverified
      */
-    unsigned int unverifiedWindowShift;
+    int unverifiedWindowShift;
     /**
      * @var M The M array which holds the edit distances of preprocessing the pattern
      */
@@ -122,13 +123,12 @@ private:
     void calculateU(char *pattern, char *u, int i);
 
     /**
-     * Preprocessing
+     * Preprocessing - Creates the M array and populates it
      *
-     * @param pattern
-     * @param windowSize
-     * @return The total minimum edit distance between s and any prefix of u
+     * @param patternDoubled
+     * @return
      */
-    int preprocessing(char *pattern, int windowSize);
+    int preprocessing(char *patternDoubled);
 
     /**
      * Edit Distance
@@ -155,10 +155,12 @@ private:
      * @todo Describe
      *
      * @param editDistanceVector
-     * @param j
+     * @param n
+     * @param rotation 
      * @param outputVector
+     * @param window2mStart
      */
-    void checkVector(int *editDistanceVector, int n, int j, vector<vector<int>> &outputVector);
+    void checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart);
 
     /**
      * @todo Describe
@@ -168,8 +170,9 @@ private:
      * @param text
      * @param n Length of text
      * @param outputVector
+     * @param window2mStart
      */
-    void verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector);
+    void verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector, int window2mStart);
 
     /**
      * Prints output vector
@@ -180,24 +183,13 @@ private:
     void printOutputVector(vector<vector<int>> &outputVector);
 
     /**
-     * Calculates window backwards
-     *
-     * @param windowBackwards
-     * @param windowBackwardsSize
-     * @param window
-     * @param windowSize
-     * @param qGramBackwards
-     */
-    //void calculateWindowBackwards(char *windowBackwards, int &windowBackwardsSize, char *window, int windowSize, int &qGramBackwards);
-
-    /**
      * Rotates a given cstring
      * 
      * @param x a cstring
-     * @param offset
-     * @param rotation returned rotated string
+     * @param offset where to rotate it at
+     * @param rotation resulting rotated string
      */
-    unsigned int rotate(char * x, int offset, char * rotation);
+    void rotate(char * x, int offset, char * rotation);
     
     /**
      * Returns the numerical representation of a string qgram
