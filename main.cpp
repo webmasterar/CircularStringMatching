@@ -114,9 +114,6 @@ int main ( int argc, char** argv )
 	CircularStringMatching csm(pattern, m, text, n, k);
 	int run = csm.run();
 
-	free(p);
-	free(t);
-
 	if (run == EXIT_FAILURE) {
 	    cerr << "Circular String Matching process failed... exiting." << endl;
 	    return run;
