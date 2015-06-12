@@ -59,68 +59,115 @@ void CircularStringMatching::calculateU(char *pattern, char *u, int i)
     u[2 * this->q] = '\0';
 }
 
-int CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n)
+int CircularStringMatching::preprocessing(char *patternDoubled)
 {
-    const int rows = 2;
+    int i, j, Emin, EminNew;
+    int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
+
+    //creates M vector and initialize all its values to 0
+    if ((this->M = (unsigned int *) calloc(sigmaPowerQ, sizeof(unsigned int))) == NULL) {
+        cerr << "Error: Could not assign M for preprocessing" << endl;
+        return EXIT_FAILURE;
+    }
+
+    char *s = new char[this->q + 1];
+    char *u = new char[2 * this->q + 1];
+
+    for (i = 0; i < sigmaPowerQ; i++) {
+	this->calculateS(s, i);
+	this->calculateU(patternDoubled, u, 0);
+
+	Emin = this->EditDistance(u, 2 * this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
+
+	for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..2m-2q times 
+	    this->calculateU(patternDoubled, u, j);
+	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
+	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
+	    if (EminNew < Emin) {
+		Emin = EminNew;
+	    }
+	}
+	this->M[i] = Emin;
+    }
+
+    delete[] u;
+    delete[] s;
+
+    return EXIT_SUCCESS;
+}
+
+int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int n)
+{
     int i, j;
     int Emin = INT_MAX;
-
-    //initialize dynamic matrix D
-    int **D = new int*[rows];
-    for (i = 0; i < rows; i++) {
-	D[i] = new int[n + 1];
-    }
-    for (j = 0; j <= n; j++) {
-	D[0][j] = 0;
-    }
-
-    //Dynamic Programming
-    for (i = 1; i <= m; i++) {
+    
+    int ** D = new int*[2];
+    D[0] = new int[m + 1];
+    D[1] = new int[m + 1];
+    for (i = 0; i < m + 1; i++){D[0][i] = 0;}
+    
+    for (i = 1; i < n + 1; i++) {
 	D[1][0] = D[0][0] + PENALTY_DEL;
-	for (j = 1; j <= n; j++) {
+	for (j = 1; j < m + 1; j++) {
 	    D[1][j] = min(
-		D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]), 
+		D[0][j - 1] + this->delta(pattern[j - 1], qgram[i - 1]), 
 		min(
 		    D[0][j] + PENALTY_DEL,
 		    D[1][j - 1] + PENALTY_INS
 		)
 	    );
+	    if (i == n && D[1][j] < Emin) {
+		Emin = D[1][j];
+	    }
 	}
-
-	if (D[1][n] < Emin){
-	    Emin = D[1][n];
-	}
-
-	//copies second vector to the first
-	if (i < m) {
-	    for (j = 0; j <= n; j++) {
+	
+	if (i < n) {
+	    for (j = 0; j < m + 1; j++) {
 		D[0][j] = D[1][j];
 	    }
 	}
     }
-
-    //free memory
-    for (i = 0; i < rows; i++) {
-        delete[] D[i];
+    
+    /*cout << qgram << " Row 0: ";
+    for (i = 0; i < m + 1; i++) {
+	cout << D[0][i] << " ";
     }
+    cout << " Row 1: ";
+    for (i = 0; i < m + 1; i++) {
+	cout << D[1][i] << " ";
+    }
+    cout << Emin << endl;*/
+    
+    delete[] D[1];
+    delete[] D[0];
     delete[] D;
 
     return Emin;
 }
 
+void CircularStringMatching::checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart)
+{
+    int i;
+    for (i = 1; i < n + 1; i++) {
+	if (editDistanceVector[i] <= this->k) {
+	    vector<int> data;
+	    data.push_back(window2mStart + i - 1); //end position of x in t
+	    data.push_back(rotation); //adds rotation
+	    data.push_back(editDistanceVector[i]); //adds k'
+	    outputVector.push_back(data); //adds rotation, end position of x in t,vector[i] to the output vector
+	}
+    }
+}
+
 void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n, int *outputVector)
 {
-    const int rows = 2;
     int i, j;
 
     //initialize dynamic matrix D
-    int **D = new int*[rows];
-    for (i = 0; i < rows; i++) {
-	D[i] = new int[n + 1];
-    }
-    for (j = 0; j <= n; j++) {
-	D[0][j] = 0;
-    }
+    int **D = new int*[2];
+    D[0] = new int[n + 1];
+    D[1] = new int[n + 1];
+    for (j = 0; j <= n; j++){D[0][j] = 0;}
 
     for (i = 1; i <= m; i++) {
 	D[1][0] = D[0][0] + PENALTY_DEL;
@@ -143,78 +190,22 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
     }
 
     //Print Matrix D
-    for (i = 0; i < rows; i++){
+    /*for (i = 0; i < 2; i++){
 	for (j = 0; j <= n; j++){
 	    cout << D[i][j] << " ";
 	}
 	cout << endl;
     }
-    cout << endl;
+    cout << endl;*/
 
     for (i = 0; i <= n; i++) {
 	outputVector[i] = D[1][i];
     }
-    //outputVector[n + 1] = 0;
 
     //free memory
-    for (i = 0; i < rows; i++) {
-        delete[] D[i];
-    }
+    delete[] D[1];
+    delete[] D[0];
     delete[] D;
-}
-
-int CircularStringMatching::preprocessing(char *patternDoubled)
-{
-    int i, j, Emin, EminNew;
-    int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
-
-    //creates M vector and initialize all its values to 0
-    if ((this->M = (unsigned int *) calloc(sigmaPowerQ, sizeof(unsigned int))) == NULL) {
-        cerr << "Error: Could not assign M for preprocessing" << endl;
-        return EXIT_FAILURE;
-    }
-
-    char *s = new char[q + 1];
-    char *u = new char[2 * q + 1];
-
-    for (i = 0; i < sigmaPowerQ; i++) {
-	this->calculateS(s, i);
-	this->calculateU(patternDoubled, u, 0);
-
-	Emin = this->EditDistance(u, 2 * this->q , s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
-	
-	for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..m-(2*q) times 
-	    this->calculateU(patternDoubled, u, j);
-	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
-	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
-	    if (EminNew < Emin) {
-		Emin = EminNew;
-	    }
-	}
-	this->M[i] = Emin;
-    }
-
-    delete[] u;
-    delete[] s;
-
-    return EXIT_SUCCESS;
-}
-
-void CircularStringMatching::checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart)
-{
-    /*
-     * Not sure what n should be @todo fix it
-     */
-    int i;
-    for (i = 1; i < n + 1; i++) {
-	if (editDistanceVector[i] <= this->k) {
-	    vector<int> data;
-	    data.push_back(rotation); //adds rotation
-	    data.push_back(window2mStart + i - 1); //end position of x in t
-	    data.push_back(editDistanceVector[i]); //adds k'
-	    outputVector.push_back(data); //adds rotation, end position of x in t,vector[i] to the output vector
-	}
-    }
 }
 
 void CircularStringMatching::verification(char *pattern, int m, char * window2m, int n, vector<vector<int>> &outputVector, int window2mStart)
@@ -240,24 +231,27 @@ void CircularStringMatching::verification(char *pattern, int m, char * window2m,
 
 void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector)
 {
-    int i;
-    cout << "rotation j	" << "	position i	" << "	number of mismatches	" << endl;
+    int i, j, Emin = INT_MAX;
+
+    cout << "Best Match: " << endl;
+    cout << "position i" << "\trotation j" << "\tnum mismatches" << endl;
     for (i = 0; i < outputVector.size(); i++) {
-	cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
+	//cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
+	if (outputVector[i][2] < Emin) {
+	    j = i;
+	    Emin = outputVector[i][2];
+	}
     }
+
+    cout << outputVector[j][0] << "           \t" << outputVector[j][1] << "          \t" << outputVector[j][2] << endl;
 }
 
 int CircularStringMatching::run()
 {  
-    int i, j, k;
-    int shift, qGramBackwards;
+    int i, j, k, shift;
 
     //holds rotation of pattern, position of occurence and number of mismatches
     vector<vector<int>> outputVector;
-
-    qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
-
-    cout << this->q << " " << qGramBackwards << endl;
     
     if (this->unverifiedWindowShift < 1) {
 	cerr << "The pattern you are using is too short" << endl;
@@ -273,7 +267,6 @@ int CircularStringMatching::run()
      */
     this->preprocessing((char *) xx.c_str());
     
-    
     /*
      * 
      * Step 2: loop through the text in a moving window
@@ -284,7 +277,7 @@ int CircularStringMatching::run()
 
 	//figure out if we need to verify
 	total = 0;
-	for (qpos = pos - this->q; qpos < pos - qGramBackwards && qpos >= 0; qpos--) { //VII
+	for (qpos = pos - this->q, i = 0; qpos >= 0 && i < this->qGramBackwards; qpos--, i++) { //VII
 	    qIndex = this->getQIndex( (char *) this->text.substr(qpos, this->q).c_str());
 	    total = total + this->M[qIndex];
 	    if (total > this->k) {
@@ -292,12 +285,12 @@ int CircularStringMatching::run()
 	    }
 	}
 	
-	cout << "total: " << total << endl;
+	//cout << "total: " << total << endl;
 	
 	//verify
 	if (total <= this->k) {
 	    int window2mStart = pos - ((int)this->m - (int)this->k);
-	    cout << "pos: " << pos << " start: " << window2mStart << endl;
+	    //cout << "pos: " << pos - 1 << " start: " << window2mStart << endl;
 	    string w = this->text.substr(window2mStart, 2 * this->m);
 	    this->verification((char *) this->pattern.c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
 	}
@@ -340,7 +333,11 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
 
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
     this->q = (unsigned int) ceil( ((3 * (log(this->m) / log(this->sigma))) + (logK / log(this->sigma))) / this->d ); //IX
+    //this->q = 3u;
     cout << "q: " << q << endl;
+    
+    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
+    cout << "qb: " << this->qGramBackwards << endl;
 
     this->verifiedWindowShift = this->m - this->k; //VIII
     cout << "vw: " << this->verifiedWindowShift << endl;

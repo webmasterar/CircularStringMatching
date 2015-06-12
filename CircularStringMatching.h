@@ -49,11 +49,11 @@ private:
      */
     const int sigma = 4;
     /**
-     * @var d
+     * @var d See lemma 4
      */
     double d;
     /**
-     * @var c
+     * @var c See lemma 4
      */
     double c;
     /**
@@ -80,6 +80,10 @@ private:
      * @var q The size of the q-gram
      */
     unsigned int q;
+    /**
+     * @var qGramBackwards How many q-grams to read backwards from a window
+     */
+    int qGramBackwards;
     /**
      * @var verifiedWindowSize The maximum positions to move the window if verified
      */
@@ -131,17 +135,17 @@ private:
     int preprocessing(char *patternDoubled);
 
     /**
-     * Edit Distance
+     * Edit Distance for preprocessing
      *
      * @param pattern
      * @param m The length of the pattern
-     * @param text
-     * @param n The length of the text
+     * @param qgram
+     * @param n The length of the qgram
      */
-    int EditDistance(char *pattern, int m, char *text, int n);
+    int EditDistance(char *pattern, int m, char *qgram, int n);
 
     /**
-     * Edit Distance
+     * Edit Distance for verification
      *
      * @param pattern
      * @param m The length of the pattern
@@ -152,7 +156,7 @@ private:
     void EditDistance(char *pattern, int m, char *text, int n, int *outputVector);
 
     /**
-     * @todo Describe
+     * Takes the verification edit distance row and sticks it in the outputVector if < k
      *
      * @param editDistanceVector
      * @param n
@@ -163,7 +167,7 @@ private:
     void checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart);
 
     /**
-     * @todo Describe
+     * Verify
      *
      * @param pattern
      * @param m Length of pattern
@@ -175,9 +179,8 @@ private:
     void verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector, int window2mStart);
 
     /**
-     * Prints output vector
+     * Prints best match found
      *
-     * @deprecated Not in current use
      * @param outputVector
      */
     void printOutputVector(vector<vector<int>> &outputVector);

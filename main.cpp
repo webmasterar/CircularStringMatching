@@ -109,7 +109,9 @@ int main ( int argc, char** argv )
     else
     {
 	string pattern = string(p);
+	transform(pattern.begin(), pattern.end(), pattern.begin(), ::tolower);
 	string text = string(t);
+	transform(text.begin(), text.end(), text.begin(), ::tolower);
 
 	CircularStringMatching csm(pattern, m, text, n, k);
 	int run = csm.run();
