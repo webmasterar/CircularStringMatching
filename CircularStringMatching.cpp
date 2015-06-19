@@ -65,10 +65,11 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
     int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
 
     //creates M vector and initialize all its values to 0
-    if ((this->M = (unsigned int *) calloc(sigmaPowerQ, sizeof(unsigned int))) == NULL) {
+    if ((this->M = (unsigned int *) malloc(sigmaPowerQ * sizeof(unsigned int))) == NULL) {
         cerr << "Error: Could not assign M for preprocessing" << endl;
         return EXIT_FAILURE;
     }
+    memset(this->M, this->k + 1, sigmaPowerQ * sizeof(unsigned int));
 
     char *s = new char[this->q + 1];
     char *u = new char[2 * this->q + 1];
@@ -87,7 +88,10 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
 		Emin = EminNew;
 	    }
 	}
-	this->M[i] = Emin;
+	
+	if (Emin < this->M[i]) {
+	    this->M[i] = Emin;
+	}
     }
 
     delete[] u;
@@ -104,10 +108,11 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
     int ** D = new int*[2];
     D[0] = new int[m + 1];
     D[1] = new int[m + 1];
-    for (i = 0; i < m + 1; i++){D[0][i] = 0;}
+    D[0][i] = 0;
+    for (i = 1; i < m + 1; i++){D[0][i] = D[0][i - 1] + PENALTY_DEL;}
     
     for (i = 1; i < n + 1; i++) {
-	D[1][0] = D[0][0] + PENALTY_DEL;
+	D[1][0] = D[0][0] + PENALTY_INS;
 	for (j = 1; j < m + 1; j++) {
 	    D[1][j] = min(
 		D[0][j - 1] + this->delta(pattern[j - 1], qgram[i - 1]), 
@@ -310,14 +315,25 @@ int CircularStringMatching::run()
 
 CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k)
 {
-    this->alphabet[(int)'a'] = 0u;
-    this->alphabet[(int)'c'] = 1u;
-    this->alphabet[(int)'g'] = 2u;
-    this->alphabet[(int)'t'] = 3u;
-    this->antiAlphabet[0] = 'a';
-    this->antiAlphabet[1] = 'c';
-    this->antiAlphabet[2] = 'g';
-    this->antiAlphabet[3] = 't';
+    if ((int)text.at(0) > 96) {
+	this->alphabet[(int)'a'] = 0u;
+	this->alphabet[(int)'c'] = 1u;
+	this->alphabet[(int)'g'] = 2u;
+	this->alphabet[(int)'t'] = 3u;
+	this->antiAlphabet[0] = 'a';
+	this->antiAlphabet[1] = 'c';
+	this->antiAlphabet[2] = 'g';
+	this->antiAlphabet[3] = 't';
+    } else {
+	this->alphabet[(int)'A'] = 0u;
+	this->alphabet[(int)'C'] = 1u;
+	this->alphabet[(int)'G'] = 2u;
+	this->alphabet[(int)'T'] = 3u;
+	this->antiAlphabet[0] = 'A';
+	this->antiAlphabet[1] = 'C';
+	this->antiAlphabet[2] = 'G';
+	this->antiAlphabet[3] = 'T';
+    }
     
     this->pattern = pattern;
     this->m = m;
@@ -332,7 +348,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     cout << "d: " << d << endl;
 
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
-    this->q = (unsigned int) ceil( ((3 * (log(this->m) / log(this->sigma))) + (logK / log(this->sigma))) / this->d ); //IX
+    this->q = min(6u, (unsigned int) ceil( ((log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX - decided to replace (3 * (log(this->m) / log(this->sigma))) with 1 * .
     //this->q = 3u;
     cout << "q: " << q << endl;
     
