@@ -108,7 +108,7 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
     int ** D = new int*[2];
     D[0] = new int[m + 1];
     D[1] = new int[m + 1];
-    D[0][i] = 0;
+    D[0][0] = 0;
     for (i = 1; i < m + 1; i++){D[0][i] = D[0][i - 1] + PENALTY_DEL;}
     
     for (i = 1; i < n + 1; i++) {
