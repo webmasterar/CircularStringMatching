@@ -80,7 +80,8 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
 
 	Emin = this->EditDistance(u, 2 * this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
 
-	for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..2m-2q times 
+	//for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..2m-2q times 
+	for (j = 1; j < this->m; j++) { //1..2m-2q times 
 	    this->calculateU(patternDoubled, u, j);
 	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
 	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
