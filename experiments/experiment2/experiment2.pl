@@ -96,7 +96,7 @@ for my $pc (@diss) {
         my @lines = split(/\r?\n/, $cmdOutput);
         my $lastLine = $lines[$#lines];
         my $rotatedBackRSeq = "";
-        if ($lastLine !~ m/^position i/)
+        if ($lastLine !~ m/^<<<No matches found>>>/)
         {
             $lastLine =~ m/^(\d+)\s+(\d+)\s+(\d+)/;
             my $ii = $1;
@@ -113,12 +113,12 @@ for my $pc (@diss) {
                 my $c = ( $a <= $b ) ? $a : $b;
                 $pos = $pSeqLen - $c;
             }
-            $rotatedBackRSeq = substr(substr($rSeq, $pos) . substr($rSeq, 0, $pos), 0, $pSeqLen);
+            $rotatedBackRSeq = substr(substr($rSeq, $pos - $m) . substr($rSeq, 0, $pos - $m), 0, $pSeqLen);
         }
         else
         {
             #match not found!!!!
-            $rotatedBackRSeq = "<<<Match not found!>>>";
+            $rotatedBackRSeq = $lastLine;
         }
 
         #Run tSeq and rSeq through Levenshtein to get original Edit Distance score

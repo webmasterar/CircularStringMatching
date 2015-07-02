@@ -238,17 +238,20 @@ void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector
 {
     int i, j, Emin = INT_MAX;
 
-    cout << "Best Match: " << endl;
-    cout << "position i" << "\trotation j" << "\tnum mismatches" << endl;
-    for (i = 0; i < outputVector.size(); i++) {
-	//cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
-	if (outputVector[i][2] < Emin) {
-	    j = i;
-	    Emin = outputVector[i][2];
+    if (outputVector.size() >= 1) {
+	cout << "Best Match: " << endl;
+	cout << "position i" << "\trotation j" << "\tnum mismatches" << endl;
+	for (i = 0; i < outputVector.size(); i++) {
+	    //cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
+	    if (outputVector[i][2] < Emin) {
+		j = i;
+		Emin = outputVector[i][2];
+	    }
 	}
+	cout << outputVector[j][0] << "           \t" << outputVector[j][1] << "          \t" << outputVector[j][2] << endl;
+    } else {
+	cout << "<<<No matches found>>>" << endl;
     }
-
-    cout << outputVector[j][0] << "           \t" << outputVector[j][1] << "          \t" << outputVector[j][2] << endl;
 }
 
 int CircularStringMatching::run()
