@@ -256,9 +256,7 @@ void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector
 }
 
 int CircularStringMatching::run()
-{  
-    int i, j, k, shift;
-
+{
     //holds rotation of pattern, position of occurence and number of mismatches
     vector<vector<int>> outputVector;
     
@@ -285,6 +283,7 @@ int CircularStringMatching::run()
     while (pos < this->n) {
 
 	//figure out if we need to verify
+	unsigned int i;
 	total = 0;
 	for (qpos = pos - this->q, i = 0; qpos >= 0 && i < this->qGramBackwards; qpos--, i++) { //VII
 	    qIndex = this->getQIndex( (char *) this->text.substr(qpos, this->q).c_str());
@@ -294,10 +293,11 @@ int CircularStringMatching::run()
 	    }
 	}
 	
-	//cout << "total: " << total << endl;
+	//cout << "pos " << pos << " total: " << total << endl;
 	
 	//verify
 	if (total <= this->k) {
+	    //cout << "verifying..." << endl;
 	    int window2mStart = pos - ((int)this->m - (int)this->k);
 	    //cout << "pos: " << pos - 1 << " start: " << window2mStart << endl;
 	    string w = this->text.substr(window2mStart, 2 * this->m);
@@ -305,10 +305,16 @@ int CircularStringMatching::run()
 	}
 
 	//move window
+	if (pos > this->n - this->qGramBackwards) {
+	    break;
+	}
 	if (total > this->k) {
 	    pos = pos + this->unverifiedWindowShift;
 	} else {
 	    pos = pos + this->verifiedWindowShift;
+	}
+	if (pos >= this->n) {
+	    pos = this->n - 1;
 	}
     }
     
@@ -356,7 +362,8 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     //this->q = 3u;
     cout << "q: " << q << endl;
     
-    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
+    //this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
+    this->qGramBackwards = (unsigned int) (0.5 * this->m + this->k / (this->c * this->q));
     cout << "qb: " << this->qGramBackwards << endl;
 
     this->verifiedWindowShift = this->m - this->k; //VIII
