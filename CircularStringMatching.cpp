@@ -243,7 +243,6 @@ void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector
 	cout << "Best Match: " << endl;
 	cout << "position i" << "\trotation j" << "\tnum mismatches" << endl;
 	for (i = 0; i < outputVector.size(); i++) {
-	    //cout << "	" << outputVector[i][0] << "		" << outputVector[i][1] << "		" << outputVector[i][2] << endl;
 	    if (outputVector[i][2] < Emin) {
 		j = i;
 		Emin = outputVector[i][2];
@@ -305,15 +304,23 @@ int CircularStringMatching::run()
 	}
 
 	//move window
-	if (pos > this->n - this->qGramBackwards) {
+	/*if (pos > this->n - this->qGramBackwards)
+	{
+	    break;
+	}*/
+	if (pos == this->n -1) {
 	    break;
 	}
+
 	if (total > this->k) {
 	    pos = pos + this->unverifiedWindowShift;
 	} else {
 	    pos = pos + this->verifiedWindowShift;
 	}
-	if (pos >= this->n) {
+	
+	
+	if (pos >= this->n)
+	{
 	    pos = this->n - 1;
 	}
     }
