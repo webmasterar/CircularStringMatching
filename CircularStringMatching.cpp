@@ -103,15 +103,15 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
 
 int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int n)
 {
-    int i, j;
+    int i, j, k;
     int Emin = INT_MAX;
-    
-    int ** D = new int*[2];
+
+    /*int ** D = new int*[2];
     D[0] = new int[m + 1];
     D[1] = new int[m + 1];
     D[0][0] = 0;
     for (i = 1; i < m + 1; i++){D[0][i] = D[0][i - 1] + PENALTY_DEL;}
-    
+
     for (i = 1; i < n + 1; i++) {
 	D[1][0] = D[0][0] + PENALTY_INS;
 	for (j = 1; j < m + 1; j++) {
@@ -132,8 +132,54 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
 		D[0][j] = D[1][j];
 	    }
 	}
+    }*/
+
+    int * D0 = new int[m + 1];
+    D0[0] = 0;
+    for (i = 1; i < m + 1; i++) {D0[i] = D0[i - 1] + PENALTY_DEL;}
+    int * D1 = new int[m + 1];
+
+    for (i = 1; i < n + 1; i++) {
+	for (j = 0; j < m + 1; j++) {
+	    switch (i % 2) {
+	      case 1:
+		  if (j == 0)
+		  {
+		      D1[0] = D0[0] + PENALTY_INS;
+		  }
+		  else
+		  {
+		      D1[j] = k = min(
+			  D0[j - 1] + this->delta(pattern[j - 1], qgram[i - 1]),
+			  min(D0[j] + PENALTY_DEL, D1[j - 1] + PENALTY_INS)
+		      );
+		  }
+		  break;
+
+	      case 0:
+		  if (j == 0)
+		  {
+		      D0[0] = D1[0] + PENALTY_INS;
+		  }
+		  else
+		  {
+		      D0[j] = k = min(
+			  D1[j - 1] + this->delta(pattern[j - 1], qgram[i - 1]),
+			  min(D1[j] + PENALTY_DEL, D0[j - 1] + PENALTY_INS)
+		      );
+		  }
+		break;
+	    }
+
+	    if (i == n && k < Emin) {
+		Emin = k;
+	    }
+	}
     }
-    
+
+    delete[] D0;
+    delete[] D1;
+
     /*cout << qgram << " Row 0: ";
     for (i = 0; i < m + 1; i++) {
 	cout << D[0][i] << " ";
@@ -143,10 +189,10 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
 	cout << D[1][i] << " ";
     }
     cout << Emin << endl;*/
-    
-    delete[] D[1];
+
+    /*delete[] D[1];
     delete[] D[0];
-    delete[] D;
+    delete[] D;*/
 
     return Emin;
 }
@@ -167,10 +213,56 @@ void CircularStringMatching::checkVector(int *editDistanceVector, int n, int rot
 
 void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int n, int *outputVector)
 {
-    int i, j;
+    int i, j, k;
+
+    int * D0 = new int[n + 1];
+    for (j = 0; j <= n; j++) {D0[j] = 0;}
+    int * D1 = new int[n + 1];
+
+    for (i = 1; i <= m; i++) {
+	for (j = 0; j <= n; j++) {
+	    k = i % 2;
+	    switch (k) {
+	      case 1:
+		  if (j == 0)
+		  {
+		      D1[0] = D0[0] + PENALTY_INS;
+		  }
+		  else
+		  {
+		      D1[j] = min(
+			  D0[j - 1] + this->delta(pattern[i - 1], text[j - 1]),
+			  min(D0[j] + PENALTY_DEL, D1[j - 1] + PENALTY_INS)
+		      );
+		  }
+		  break;
+
+	      case 0:
+		  if (j == 0)
+		  {
+		      D0[0] = D1[0] + PENALTY_INS;
+		  }
+		  else
+		  {
+		      D0[j] = min(
+			  D1[j - 1] + this->delta(pattern[i - 1], text[j - 1]),
+			  min(D1[j] + PENALTY_DEL, D0[j - 1] + PENALTY_INS)
+		      );
+		  }
+		  break;
+	    }
+	}
+    }
+
+    for (j = 0; j <= n; j++) {
+	outputVector[j] = (k == 1) ? D1[j] : D0[j];
+    }
+    
+    delete[] D0;
+    delete[] D1;
 
     //initialize dynamic matrix D
-    int **D = new int*[2];
+    /*int **D = new int*[2];
     D[0] = new int[n + 1];
     D[1] = new int[n + 1];
     for (j = 0; j <= n; j++){D[0][j] = 0;}
@@ -193,7 +285,7 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
 		D[0][j] = D[1][j];
 	    }
 	}
-    }
+    }*/
 
     //Print Matrix D
     /*for (i = 0; i < 2; i++){
@@ -204,14 +296,14 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
     }
     cout << endl;*/
 
-    for (i = 0; i <= n; i++) {
+    /*for (i = 0; i <= n; i++) {
 	outputVector[i] = D[1][i];
-    }
+    }*/
 
     //free memory
-    delete[] D[1];
+    /*delete[] D[1];
     delete[] D[0];
-    delete[] D;
+    delete[] D;*/
 }
 
 void CircularStringMatching::verification(char *pattern, int m, char * window2m, int n, vector<vector<int>> &outputVector, int window2mStart)
