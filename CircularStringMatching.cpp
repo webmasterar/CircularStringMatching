@@ -467,6 +467,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
 
     this->verifiedWindowShift = this->m - this->k; //VIII
     cout << "vw: " << this->verifiedWindowShift << endl;
-    this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
+    //this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
+    this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->qGramBackwards + this->q - 1));
     cout << "uvw: " << this->unverifiedWindowShift << endl;
 }
