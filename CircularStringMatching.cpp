@@ -462,7 +462,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     cout << "q: " << q << endl;
     
     //this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
-    this->qGramBackwards = (unsigned int) (0.5 * this->m + this->k / (this->c * this->q));
+    this->qGramBackwards = (unsigned int) ((0.6 * this->m) + (this->k / (this->c * this->q))); //was 0.5
     cout << "qb: " << this->qGramBackwards << endl;
 
     this->verifiedWindowShift = this->m - this->k; //VIII

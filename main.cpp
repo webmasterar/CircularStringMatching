@@ -49,14 +49,16 @@ int main ( int argc, char** argv )
                         fprintf( stderr, "Input file f could not be opened!\n");
                         return ( EXIT_FAILURE );
                     } else {
+			size_t read_size = 0;
                         fseek ( ft, 0, SEEK_END );
                         unsigned long length = ftell ( ft );
                         fseek ( ft, 0, SEEK_SET );
-                        t = (char *) malloc ( length );
+                        t = (char *) malloc ( length + 1 );
                         if ( t ) {
-                            fread ( t, 1, length, ft );
+                            read_size = fread ( t, 1, length, ft );
                         }
                         fclose ( ft );
+			t[length] = '\0';
                     }
                     break;
 
@@ -69,14 +71,16 @@ int main ( int argc, char** argv )
                         fprintf( stderr, "Input file l could not be opened!\n");
                         return ( EXIT_FAILURE );
                     } else {
+			size_t read_size = 0;
                         fseek ( fp, 0, SEEK_END );
                         unsigned long length = ftell ( fp );
                         fseek ( fp, 0, SEEK_SET );
-                        p = (char *) malloc ( length );
+                        p = (char *) malloc ( length + 1 );
                         if ( p ) {
-                            fread ( p, 1, length, fp );
+                            read_size = fread ( p, 1, length, fp );
                         }
                         fclose ( fp );
+			p[length] = '\0';
                     }
                     break;
 
