@@ -26,6 +26,7 @@
 #include <algorithm>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 
 #define PENALTY_DEL 1
 #define PENALTY_INS 1

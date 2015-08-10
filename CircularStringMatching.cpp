@@ -79,11 +79,13 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
 	this->calculateU(patternDoubled, u, 0);
 
 	Emin = this->EditDistance(u, 2 * this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
+          //Emin = this->EditDistance(s, this->q, u, 2 * this->q);
 
 	//for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..2m-2q times 
 	for (j = 1; j < this->m; j++) { //1..2m-2q times 
 	    this->calculateU(patternDoubled, u, j);
 	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
+              //EminNew = this->EditDistance(s, this->q, u, 2 * this->q);
 	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
 	    if (EminNew < Emin) {
 		Emin = EminNew;
@@ -137,6 +139,7 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
     int * D0 = new int[m + 1];
     D0[0] = 0;
     for (i = 1; i < m + 1; i++) {D0[i] = D0[i - 1] + PENALTY_DEL;}
+    //for (i = 1; i < m + 1; i++) {D0[i] = 0;}
     int * D1 = new int[m + 1];
 
     for (i = 1; i < n + 1; i++) {
@@ -168,7 +171,7 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
 			  min(D1[j] + PENALTY_DEL, D0[j - 1] + PENALTY_INS)
 		      );
 		  }
-		break;
+		  break;
 	    }
 
 	    if (i == n && k < Emin) {
@@ -350,12 +353,16 @@ int CircularStringMatching::run()
 {
     //holds rotation of pattern, position of occurence and number of mismatches
     vector<vector<int>> outputVector;
-    
+    clock_t preprocessingTime, runningTime; //initializes variables which will hold time
+    runningTime = clock(); //sets it equal to clock 
+    int numberVerifications = 0;
+    bool boolVerify = false;
+          
     if (this->unverifiedWindowShift < 1) {
 	cerr << "The pattern you are using is too short" << endl;
 	return EXIT_FAILURE;
     }
-
+    
     string xx = this->pattern + this->pattern;
     
     /*
@@ -363,13 +370,22 @@ int CircularStringMatching::run()
      * Step 1: Preprocess the pattern to fill out the M array
      * 
      */
+    cout << "Building q-gram index..." << endl;
+    preprocessingTime = clock(); //sets it equal to the clock
     this->preprocessing((char *) xx.c_str());
+    preprocessingTime = clock() - preprocessingTime; //sets it equal to the differnce of intial clock value and current clock value
+     
+    //Outputs M 
+    /*for (int i = 0; i < (int) pow((double)this->sigma, (double)this->q); i++) {
+            cout << "M[" << i << "]" << this->M[i] <<endl;
+    }*/
     
     /*
      * 
      * Step 2: loop through the text in a moving window
      * 
      */
+    cout << "Starting searching process..." << endl;
     int qpos, qIndex, total, pos = this->verifiedWindowShift;
     while (pos < this->n) {
 
@@ -378,21 +394,29 @@ int CircularStringMatching::run()
 	total = 0;
 	for (qpos = pos - this->q, i = 0; qpos >= 0 && i < this->qGramBackwards; qpos--, i++) { //VII
 	    qIndex = this->getQIndex( (char *) this->text.substr(qpos, this->q).c_str());
+              if ((this->M[qIndex]) < (this->c * this->q)){
+                  boolVerify = true;
+                  //break;
+              }
 	    total = total + this->M[qIndex];
-	    if (total > this->k) {
+	    /*if (total > this->k) {
 		break;
-	    }
+	    }*/
 	}
 	
+          if ((boolVerify == false) && (total <= this->k)){
+              boolVerify = true;
+          }
 	//cout << "pos " << pos << " total: " << total << endl;
-	
 	//verify
-	if (total <= this->k) {
+	//if (total <= this->k) {
+          if (boolVerify){
 	    //cout << "verifying..." << endl;
 	    int window2mStart = pos - ((int)this->m - (int)this->k);
 	    //cout << "pos: " << pos - 1 << " start: " << window2mStart << endl;
 	    string w = this->text.substr(window2mStart, 2 * this->m);
 	    this->verification((char *) this->pattern.c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
+              numberVerifications += 1;
 	}
 
 	//move window
@@ -404,7 +428,8 @@ int CircularStringMatching::run()
 	    break;
 	}
 
-	if (total > this->k) {
+	//if (total > this->k) {
+          if (boolVerify){
 	    pos = pos + this->unverifiedWindowShift;
 	} else {
 	    pos = pos + this->verifiedWindowShift;
@@ -415,9 +440,16 @@ int CircularStringMatching::run()
 	{
 	    pos = this->n - 1;
 	}
+
+          boolVerify = false;
     }
     
     this->printOutputVector(outputVector);
+    cout << "Number of Verifications: " << numberVerifications << endl;
+    runningTime = clock() - runningTime; //sets it equal to the differnce of intial clock value and current clock value
+          
+    cout << "Preprocessing time: " << (((float) preprocessingTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
+    cout << "Total running time: " << (((float) runningTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
 
     return EXIT_SUCCESS;
 }
@@ -443,31 +475,38 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
 	this->antiAlphabet[2] = 'G';
 	this->antiAlphabet[3] = 'T';
     }
-    
+
     this->pattern = pattern;
     this->m = m;
+    cout << "m: " << this->m << endl;
+
     this->text = text;
     this->n = n;
+    cout << "n: " << this->n <<endl;
+
     this->k = k;
 
-    this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
+    //this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
+    this->c = 0.14; //range between 0.14 - 0.5
     cout << "c: " << c << endl;
 
-    this->d = 1.1; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
+    this->d = 1.4; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
     cout << "d: " << d << endl;
 
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
-    this->q = min(6u, (unsigned int) ceil( ((log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX - decided to replace (3 * (log(this->m) / log(this->sigma))) with 1 * .
-    //this->q = 3u;
+    this->q = min(6u, (unsigned int) ceil((1 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX - decided to replace (3 * (log(this->m) / log(this->sigma))) with 1 * .
+    this->q = (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d );      
+    //this->q = 8u;
     cout << "q: " << q << endl;
-    
-    //this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
-    this->qGramBackwards = (unsigned int) ((0.6 * this->m) + (this->k / (this->c * this->q))); //was 0.5
+
+    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
+    //this->qGramBackwards = (unsigned int) ((0.6 * this->m) + (this->k / (this->c * this->q))); //was 0.5
     cout << "qb: " << this->qGramBackwards << endl;
 
     this->verifiedWindowShift = this->m - this->k; //VIII
     cout << "vw: " << this->verifiedWindowShift << endl;
-    //this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
-    this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->qGramBackwards + this->q - 1));
+
+    this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->q + (this->k / this->c))); //VIII
+    //this->unverifiedWindowShift = (int) (this->verifiedWindowShift - (this->qGramBackwards + this->q - 1));
     cout << "uvw: " << this->unverifiedWindowShift << endl;
 }
