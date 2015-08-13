@@ -78,14 +78,11 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
 	this->calculateS(s, i);
 	this->calculateU(patternDoubled, u, 0);
 
-	Emin = this->EditDistance(u, 2 * this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u
-          //Emin = this->EditDistance(s, this->q, u, 2 * this->q);
+	Emin = this->EditDistance(u, this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u //2 * q
 
-	//for (j = 1; j < 2 * this->m - 2 * this->q; j++) { //1..2m-2q times 
 	for (j = 1; j < this->m; j++) { //1..2m-2q times 
 	    this->calculateU(patternDoubled, u, j);
-	    EminNew = this->EditDistance(u, 2 * this->q, s, this->q);
-              //EminNew = this->EditDistance(s, this->q, u, 2 * this->q);
+	    EminNew = this->EditDistance(u, this->q, s, this->q); //2 * q
 	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
 	    if (EminNew < Emin) {
 		Emin = EminNew;
@@ -107,34 +104,6 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
 {
     int i, j, k;
     int Emin = INT_MAX;
-
-    /*int ** D = new int*[2];
-    D[0] = new int[m + 1];
-    D[1] = new int[m + 1];
-    D[0][0] = 0;
-    for (i = 1; i < m + 1; i++){D[0][i] = D[0][i - 1] + PENALTY_DEL;}
-
-    for (i = 1; i < n + 1; i++) {
-	D[1][0] = D[0][0] + PENALTY_INS;
-	for (j = 1; j < m + 1; j++) {
-	    D[1][j] = min(
-		D[0][j - 1] + this->delta(pattern[j - 1], qgram[i - 1]), 
-		min(
-		    D[0][j] + PENALTY_DEL,
-		    D[1][j - 1] + PENALTY_INS
-		)
-	    );
-	    if (i == n && D[1][j] < Emin) {
-		Emin = D[1][j];
-	    }
-	}
-	
-	if (i < n) {
-	    for (j = 0; j < m + 1; j++) {
-		D[0][j] = D[1][j];
-	    }
-	}
-    }*/
 
     int * D0 = new int[m + 1];
     D0[0] = 0;
@@ -182,20 +151,6 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
 
     delete[] D0;
     delete[] D1;
-
-    /*cout << qgram << " Row 0: ";
-    for (i = 0; i < m + 1; i++) {
-	cout << D[0][i] << " ";
-    }
-    cout << " Row 1: ";
-    for (i = 0; i < m + 1; i++) {
-	cout << D[1][i] << " ";
-    }
-    cout << Emin << endl;*/
-
-    /*delete[] D[1];
-    delete[] D[0];
-    delete[] D;*/
 
     return Emin;
 }
@@ -263,50 +218,6 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
     
     delete[] D0;
     delete[] D1;
-
-    //initialize dynamic matrix D
-    /*int **D = new int*[2];
-    D[0] = new int[n + 1];
-    D[1] = new int[n + 1];
-    for (j = 0; j <= n; j++){D[0][j] = 0;}
-
-    for (i = 1; i <= m; i++) {
-	D[1][0] = D[0][0] + PENALTY_DEL;
-	for (j = 1; j <= n; j++) {
-	    D[1][j] = min(
-		D[0][j - 1] + this->delta(pattern[i - 1], text[j - 1]),
-		min(
-		    D[0][j] + PENALTY_DEL,
-		    D[1][j - 1] + PENALTY_INS
-		)
-	    );
-	}
-
-	//copies second vector to the first
-	if (i < m) {
-	    for (j = 0; j <= n; j++) {
-		D[0][j] = D[1][j];
-	    }
-	}
-    }*/
-
-    //Print Matrix D
-    /*for (i = 0; i < 2; i++){
-	for (j = 0; j <= n; j++){
-	    cout << D[i][j] << " ";
-	}
-	cout << endl;
-    }
-    cout << endl;*/
-
-    /*for (i = 0; i <= n; i++) {
-	outputVector[i] = D[1][i];
-    }*/
-
-    //free memory
-    /*delete[] D[1];
-    delete[] D[0];
-    delete[] D;*/
 }
 
 void CircularStringMatching::verification(char *pattern, int m, char * window2m, int n, vector<vector<int>> &outputVector, int window2mStart)
@@ -374,11 +285,6 @@ int CircularStringMatching::run()
     preprocessingTime = clock(); //sets it equal to the clock
     this->preprocessing((char *) xx.c_str());
     preprocessingTime = clock() - preprocessingTime; //sets it equal to the differnce of intial clock value and current clock value
-     
-    //Outputs M 
-    /*for (int i = 0; i < (int) pow((double)this->sigma, (double)this->q); i++) {
-            cout << "M[" << i << "]" << this->M[i] <<endl;
-    }*/
     
     /*
      * 
@@ -394,42 +300,30 @@ int CircularStringMatching::run()
 	total = 0;
 	for (qpos = pos - this->q, i = 0; qpos >= 0 && i < this->qGramBackwards; qpos--, i++) { //VII
 	    qIndex = this->getQIndex( (char *) this->text.substr(qpos, this->q).c_str());
-              if ((this->M[qIndex]) < (this->c * this->q)){
-                  boolVerify = true;
-                  //break;
-              }
-	    total = total + this->M[qIndex];
-	    /*if (total > this->k) {
+	    if ((this->M[qIndex]) < (this->c * this->q)){
+		boolVerify = true;
 		break;
-	    }*/
+	    }
+	    total = total + this->M[qIndex];
 	}
 	
-          if ((boolVerify == false) && (total <= this->k)){
-              boolVerify = true;
-          }
-	//cout << "pos " << pos << " total: " << total << endl;
-	//verify
-	//if (total <= this->k) {
-          if (boolVerify){
-	    //cout << "verifying..." << endl;
-	    int window2mStart = pos - ((int)this->m - (int)this->k);
-	    //cout << "pos: " << pos - 1 << " start: " << window2mStart << endl;
-	    string w = this->text.substr(window2mStart, 2 * this->m);
-	    this->verification((char *) this->pattern.c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
-              numberVerifications += 1;
+	if ((boolVerify == false) && (total <= this->k)){
+	    boolVerify = true;
 	}
 
-	//move window
-	/*if (pos > this->n - this->qGramBackwards)
-	{
-	    break;
-	}*/
+	//verify
+        if (boolVerify){
+	    int window2mStart = pos - ((int)this->m - (int)this->k);
+	    string w = this->text.substr(window2mStart, 2 * this->m);
+	    this->verification((char *) this->pattern.c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
+	    numberVerifications += 1;
+	}
+
 	if (pos == this->n -1) {
 	    break;
 	}
 
-	//if (total > this->k) {
-          if (boolVerify){
+        if (boolVerify){
 	    pos = pos + this->unverifiedWindowShift;
 	} else {
 	    pos = pos + this->verifiedWindowShift;
@@ -441,7 +335,7 @@ int CircularStringMatching::run()
 	    pos = this->n - 1;
 	}
 
-          boolVerify = false;
+	boolVerify = false;
     }
     
     this->printOutputVector(outputVector);
@@ -499,7 +393,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     //this->q = 8u;
     cout << "q: " << q << endl;
 
-    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
+    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII //1 +
     //this->qGramBackwards = (unsigned int) ((0.6 * this->m) + (this->k / (this->c * this->q))); //was 0.5
     cout << "qb: " << this->qGramBackwards << endl;
 
