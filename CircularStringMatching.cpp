@@ -324,9 +324,9 @@ int CircularStringMatching::run()
 	}
 
         if (boolVerify){
-	    pos = pos + this->unverifiedWindowShift;
-	} else {
 	    pos = pos + this->verifiedWindowShift;
+	} else {
+	    pos = pos + this->unverifiedWindowShift;
 	}
 	
 	
