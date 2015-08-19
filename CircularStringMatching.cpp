@@ -73,25 +73,12 @@ void CircularStringMatching::rotate(char * x, int offset, char * rotation)
 
 unsigned int CircularStringMatching::getQIndex(char * qgram)
 {
-    //Another implementation of the function      
-    /*int i;
+    int i;
     unsigned int value = 0;
-    for (i = this->q - 1; i >= 0; i--){
+    for (i = this->q - 1; i >= 0; i--) {
           value = value + ((pow(sigma,i)) * this->alphabet[(int)qgram[this->q - i - 1]]);
     }
-    return value;*/
-          
-    unsigned int i = 0, len = strlen(qgram);
-    unsigned int word = 0;
-    unsigned int shuffle = (unsigned int) ceil(sqrt((double)this->sigma));
-    
-    while (i < len) {
-	word = word << shuffle;
-	word = word | this->alphabet[(int)qgram[i]];
-	i++;
-    }
-    
-    return word;
+    return value;
 }
 
 void CircularStringMatching::calculateU(char *pattern, char *u, int i)
@@ -416,7 +403,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
 
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
     this->q = min(6u, (unsigned int) ceil((1 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX - decided to replace (3 * (log(this->m) / log(this->sigma))) with 1 * .
-    this->q = (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d );      
+    this->q = (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d );
     //this->q = 8u;
     cout << "q: " << q << endl;
 
