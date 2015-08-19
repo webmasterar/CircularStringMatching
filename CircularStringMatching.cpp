@@ -395,16 +395,15 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     cout << "k: " << this->k << endl;
 
     //this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
-    this->c = 0.14; //range between 0.14 - 0.5
+    this->c = 0.11; //0.14; //range between 0.1 - 0.5
     cout << "c: " << c << endl;
 
-    this->d = 1.4; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
+    this->d = 1.1; //1.4; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
     cout << "d: " << d << endl;
 
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
-    this->q = min(6u, (unsigned int) ceil((1 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX - decided to replace (3 * (log(this->m) / log(this->sigma))) with 1 * .
-    this->q = (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d );
-    //this->q = 8u;
+    this->q = min(9u, (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX
+    //this->q = 7u;
     cout << "q: " << q << endl;
 
     this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
