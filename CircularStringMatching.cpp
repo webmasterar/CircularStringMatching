@@ -18,6 +18,41 @@
 
 #include "CircularStringMatching.h"
 
+void CircularStringMatching::initAlphabet()
+{
+    this->alphabet = (unsigned int *) calloc(127, sizeof(unsigned int));
+    this->antiAlphabet = (char *) calloc(21, sizeof(char));
+
+    char alphabet[22];
+    alphabet[21] = '\0';
+
+    if (this->a == ALPHABET_DNA)
+    {
+	strcpy(alphabet, DNA);
+	alphabet[5] = '\0';
+	this->sigma = 5u;
+    }
+    else if (this->a == ALPHABET_IUPAC)
+    {
+	strcpy(alphabet, IUPAC);
+	alphabet[16] = '\0';
+	this->sigma = 16u;
+    }
+    else
+    {
+	strcpy(alphabet, PROT);
+	alphabet[21] = '\0';
+	this->sigma = 21u;
+    }
+
+    unsigned int i;
+    for (i = 0; i < strlen(alphabet); i++) {
+	this->alphabet[(int)alphabet[i]] = i;
+	this->alphabet[(int)tolower(alphabet[i])] = i;
+	this->antiAlphabet[i] = alphabet[i];
+    }
+}
+
 void CircularStringMatching::calculateS(char *s, int i)
 {
     int j, temp = i;
@@ -40,9 +75,10 @@ unsigned int CircularStringMatching::getQIndex(char * qgram)
 {
     unsigned int i = 0, len = strlen(qgram);
     unsigned int word = 0;
+    unsigned int shuffle = (unsigned int) ceil(sqrt((double)this->sigma));
     
     while (i < len) {
-	word = word << 2;
+	word = word << shuffle;
 	word = word | this->alphabet[(int)qgram[i]];
 	i++;
     }
@@ -337,38 +373,21 @@ int CircularStringMatching::run()
 
 	boolVerify = false;
     }
-    
-    this->printOutputVector(outputVector);
+
+    this->printOutputVector(outputVector);    
     cout << "Number of Verifications: " << numberVerifications << endl;
     runningTime = clock() - runningTime; //sets it equal to the differnce of intial clock value and current clock value
-          
+
     cout << "Preprocessing time: " << (((float) preprocessingTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
     cout << "Total running time: " << (((float) runningTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
 
     return EXIT_SUCCESS;
 }
 
-CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k)
+CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, char a)
 {
-    if ((int)text.at(0) > 96) {
-	this->alphabet[(int)'a'] = 0u;
-	this->alphabet[(int)'c'] = 1u;
-	this->alphabet[(int)'g'] = 2u;
-	this->alphabet[(int)'t'] = 3u;
-	this->antiAlphabet[0] = 'a';
-	this->antiAlphabet[1] = 'c';
-	this->antiAlphabet[2] = 'g';
-	this->antiAlphabet[3] = 't';
-    } else {
-	this->alphabet[(int)'A'] = 0u;
-	this->alphabet[(int)'C'] = 1u;
-	this->alphabet[(int)'G'] = 2u;
-	this->alphabet[(int)'T'] = 3u;
-	this->antiAlphabet[0] = 'A';
-	this->antiAlphabet[1] = 'C';
-	this->antiAlphabet[2] = 'G';
-	this->antiAlphabet[3] = 'T';
-    }
+    this->a = a;
+    this->initAlphabet();
 
     this->pattern = pattern;
     this->m = m;
@@ -376,9 +395,10 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
 
     this->text = text;
     this->n = n;
-    cout << "n: " << this->n <<endl;
+    cout << "n: " << this->n << endl;
 
     this->k = k;
+    cout << "k: " << this->k << endl;
 
     //this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
     this->c = 0.14; //range between 0.14 - 0.5
@@ -393,7 +413,7 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     //this->q = 8u;
     cout << "q: " << q << endl;
 
-    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII //1 +
+    this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
     //this->qGramBackwards = (unsigned int) ((0.6 * this->m) + (this->k / (this->c * this->q))); //was 0.5
     cout << "qb: " << this->qGramBackwards << endl;
 

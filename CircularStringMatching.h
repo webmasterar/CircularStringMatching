@@ -28,6 +28,12 @@
 #include <math.h>
 #include <time.h>
 
+#define ALPHABET_DNA   'D'
+#define ALPHABET_PROT  'P'
+#define ALPHABET_IUPAC 'I'
+#define DNA   "ACGTN"                 //DNA alphabet
+#define IUPAC "ACGTUWSMKRYBDHVN"      //IUPAC nucleotide alphabet
+#define PROT  "ARNDCQEGHILKMFPSTWYVX" //Proteins alphabet
 #define PENALTY_DEL 1
 #define PENALTY_INS 1
 #define PENALTY_SUB 1
@@ -40,15 +46,19 @@ private:
     /**
      * @var alphabet The numerical representation of the DNA alphabet - a=0, c=1, g=2 and t=3
      */
-    unsigned int alphabet[127];
+    unsigned int * alphabet;
     /**
      * @var antiAlphabet The char representation of the DNA alphabet - 0=a, 1=c, 2=g and 3=t
      */
-    char antiAlphabet[4];
+    char * antiAlphabet;
     /**
      * @var sigma The size of the alphabet
      */
-    const int sigma = 4;
+    unsigned int sigma;
+    /**
+     * @var a Alphabet type
+     */
+    char a;
     /**
      * @var d See lemma 4
      */
@@ -96,7 +106,12 @@ private:
     /**
      * @var M The M array which holds the edit distances of preprocessing the pattern
      */
-    unsigned int * M;
+    unsigned int * M = NULL;
+    
+    /**
+     * Initializes the alphabet indices
+     */
+    void initAlphabet();
 
     /**
      * Compares characters a and b and returns 0 if they match or the substitution penalty
@@ -213,15 +228,20 @@ public:
      * @param text
      * @param n The length of the text
      * @param k The maximum number of errors permitted before skipping a window (inclusive)
+     * @param a The alphabet of the sequence (DNA/Protein)
      */
-    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k);
+    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, char a);
     
     /**
      * Free memory
      */
     ~CircularStringMatching()
     {
-	free(this->M);
+	if (this->M != NULL) {
+	    free(this->M);
+	}
+	free(this->alphabet);
+	free(this->antiAlphabet);
     }
 
     /**

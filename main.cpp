@@ -24,15 +24,17 @@
 
 int main ( int argc, char** argv )
 {
-    const char * info = "The valid options for Circular String Matching (csm) are:\n"
-			"-t\tRequired. The text to search through\n"
-			"-f\tOptional. File for -t if -t won't do\n"
-			"-p\tRequired. The pattern you are searching for\n"
-			"-l\tOptional. File for -p if -p won't do\n"
-			"-k\tOptional. Maximum error, e.g. 2. Default := 0\n"
-			"-h\tOptional. This help message\n";
+    char * info = (char *) "The valid options for Circular String Matching (csm) are:\n"
+			   "-t\tRequired. The text to search through\n"
+			   "-f\tOptional. File for -t if -t won't do\n"
+			   "-p\tRequired. The pattern you are searching for\n"
+			   "-l\tOptional. File for -p if -p won't do\n"
+			   "-a\tRequired. The sequence type (DNA or PROT)\n"
+			   "-k\tOptional. Maximum error, e.g. 2. Default := 0\n"
+			   "-h\tOptional. This help message\n";
     char * t = (char *) "";
     char * p = (char *) "";
+    char a = '\0';
     unsigned int k = 0;
     FILE * ft, * fp;
 
@@ -65,6 +67,21 @@ int main ( int argc, char** argv )
                 case 'p':
                     p = argv[i + 1];
                     break;
+
+		case 'a':
+		    if (strcmp("DNA", argv[i + 1]) == 0)
+		    {
+			a = ALPHABET_DNA;			
+		    }
+		    else if (strcmp("PROT", argv[i + 1]) == 0)
+		    {
+			a = ALPHABET_PROT;
+		    }
+		    else if (strcmp("IUPAC", argv[i + 1]) == 0)
+		    {
+			a = ALPHABET_IUPAC;
+		    }
+		    break;
 
                 case 'l':
                     if ( ( fp = fopen ( argv[i + 1], "r" ) ) == NULL ) {
@@ -104,9 +121,9 @@ int main ( int argc, char** argv )
     unsigned int n = strlen(t);
     unsigned int m = strlen(p);
 
-    if (n == 0 || m == 0)
+    if (n == 0 || m == 0 || a == '\0')
     {
-        fprintf( stderr, "Command line options missing!\n");
+        fprintf( stderr, "Command line options missing/invalid!\n" );
         printf ( "%s", info );
         return ( EXIT_FAILURE );
     }
@@ -115,12 +132,13 @@ int main ( int argc, char** argv )
 	string pattern = string(p);
 	string text = string(t);
 
-	CircularStringMatching csm(pattern, m, text, n, k);
+	CircularStringMatching csm(pattern, m, text, n, k, a);
 	int run = csm.run();
 
 	if (run == EXIT_FAILURE) {
-	    cerr << "Circular String Matching process failed... exiting." << endl;
-	    return run;
+	    fprintf ( stderr, "Circular String Matching process failed... exiting.\n" );
+	    free ( t );
+	    return EXIT_FAILURE;
 	}
     }
 
