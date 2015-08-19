@@ -38,6 +38,14 @@ void CircularStringMatching::rotate(char * x, int offset, char * rotation)
 
 unsigned int CircularStringMatching::getQIndex(char * qgram)
 {
+    //Another implementation of the function      
+    /*int i;
+    unsigned int value = 0;
+    for (i = this->q - 1; i >= 0; i--){
+          value = value + ((pow(sigma,i)) * this->alphabet[(int)qgram[this->q - i - 1]]);
+    }
+    return value;*/
+          
     unsigned int i = 0, len = strlen(qgram);
     unsigned int word = 0;
     
@@ -77,13 +85,11 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
     for (i = 0; i < sigmaPowerQ; i++) {
 	this->calculateS(s, i);
 	this->calculateU(patternDoubled, u, 0);
-
 	Emin = this->EditDistance(u, this->q, s, this->q); //sets Emin equal to the minimum edit distance between s and any prefix of u //2 * q
 
 	for (j = 1; j < this->m; j++) { //1..2m-2q times 
 	    this->calculateU(patternDoubled, u, j);
-	    EminNew = this->EditDistance(u, this->q, s, this->q); //2 * q
-	    //sets EminNew equal to the minimum edit distance between s and any prefix of u
+	    EminNew = this->EditDistance(u, this->q, s, this->q); //sets EminNew equal to the minimum edit distance between s and any prefix of u //2 * q
 	    if (EminNew < Emin) {
 		Emin = EminNew;
 	    }
@@ -285,7 +291,8 @@ int CircularStringMatching::run()
     preprocessingTime = clock(); //sets it equal to the clock
     this->preprocessing((char *) xx.c_str());
     preprocessingTime = clock() - preprocessingTime; //sets it equal to the differnce of intial clock value and current clock value
-    
+    cout << "Preprocessing time: " << (((float) preprocessingTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
+          
     /*
      * 
      * Step 2: loop through the text in a moving window
@@ -342,7 +349,7 @@ int CircularStringMatching::run()
     cout << "Number of Verifications: " << numberVerifications << endl;
     runningTime = clock() - runningTime; //sets it equal to the differnce of intial clock value and current clock value
           
-    cout << "Preprocessing time: " << (((float) preprocessingTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
+    cout << "Searching/Verification time: " << (((float) (runningTime - preprocessingTime)) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
     cout << "Total running time: " << (((float) runningTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
 
     return EXIT_SUCCESS;
