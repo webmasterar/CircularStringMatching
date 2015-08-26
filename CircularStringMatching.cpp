@@ -137,7 +137,6 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
     int * D0 = new int[m + 1];
     D0[0] = 0;
     for (i = 1; i < m + 1; i++) {D0[i] = D0[i - 1] + PENALTY_DEL;}
-    //for (i = 1; i < m + 1; i++) {D0[i] = 0;}
     int * D1 = new int[m + 1];
 
     for (i = 1; i < n + 1; i++) {
@@ -370,10 +369,10 @@ int CircularStringMatching::run()
 
     this->printOutputVector(outputVector);    
     cout << "Number of Verifications: " << numberVerifications << endl;
-    runningTime = clock() - runningTime; //sets it equal to the differnce of intial clock value and current clock value
+    runningTime = clock() - runningTime;
 
-    cout << "Searching/Verification time: " << (((float) (runningTime - preprocessingTime)) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
-    cout << "Total running time: " << (((float) runningTime) / CLOCKS_PER_SEC) << " seconds" << endl; //converts into a float and outputs time in seconds
+    cout << "Searching/Verification time: " << (((float) (runningTime - preprocessingTime)) / CLOCKS_PER_SEC) << " seconds" << endl;
+    cout << "Total running time: " << (((float) runningTime) / CLOCKS_PER_SEC) << " seconds" << endl;
 
     return EXIT_SUCCESS;
 }
@@ -395,15 +394,26 @@ CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, s
     cout << "k: " << this->k << endl;
 
     //this->c = abs(1 - (exp(1) / sqrt(this->sigma))); //@todo check: lemma 4 "The probability decreases exponentionally for d > 1, which holds if c < 1 - e/sqrt(sigma)
-    this->c = 0.11; //0.14; //range between 0.1 - 0.5
+    //c value dependent on sigma
+    if (this->a == ALPHABET_DNA) {
+	this->c = 0.1111;
+    } else {
+	this->c = 0.2498;
+    }
     cout << "c: " << c << endl;
 
-    this->d = 1.1; //1.4; //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
+    //1 - this->c + (2 * this->c * (log(this->c) / log(this->sigma))) + (2 * (1 - this->c) * (log(1 - this->c) / log(this->sigma))); //lemma 4
+    //d value somewhat dependent on sigma
+    if (this->a == ALPHABET_DNA) {
+	this->d = 1.0;
+    } else {
+	this->d = 1.1;
+    }
     cout << "d: " << d << endl;
 
+    //q-gram size restricted otherwise preprocessing would take exponentionally longer and use up too much memory
     double logK = (this->k == 0) ? 0 : log(this->k); //can't log k=0
     this->q = min(9u, (unsigned int) ceil((3 * (log(this->m) / log(this->sigma)) + (logK / log(this->sigma))) / this->d )); //IX
-    //this->q = 7u;
     cout << "q: " << q << endl;
 
     this->qGramBackwards = ceil(1 + (this->k / (this->c * this->q))); //VII
