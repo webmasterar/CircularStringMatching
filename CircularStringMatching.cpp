@@ -95,7 +95,7 @@ int CircularStringMatching::preprocessing(char *patternDoubled)
     int i, j, Emin, EminNew;
     int sigmaPowerQ = (int) pow((double)this->sigma, (double)this->q); //sigma^q
 
-    //creates M vector and initialize all its values to 0
+    //creates M array and initializes all its values to k + 1
     if ((this->M = (unsigned int *) malloc(sigmaPowerQ * sizeof(unsigned int))) == NULL) {
         cerr << "Error: Could not assign M for preprocessing" << endl;
         return EXIT_FAILURE;
@@ -183,16 +183,16 @@ int CircularStringMatching::EditDistance(char *pattern, int m, char *qgram, int 
     return Emin;
 }
 
-void CircularStringMatching::checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart)
+void CircularStringMatching::checkVector(int *editDistanceVector, int n, int rotation, vector<vector<unsigned int>> &outputVector, unsigned int window2mStart)
 {
     int i;
     for (i = 1; i < n + 1; i++) {
 	if (editDistanceVector[i] <= this->k) {
-	    vector<int> data;
+	    vector<unsigned int> data;
 	    data.push_back(window2mStart + i - 1); //end position of x in t
 	    data.push_back(rotation); //adds rotation
 	    data.push_back(editDistanceVector[i]); //adds k'
-	    outputVector.push_back(data); //adds rotation, end position of x in t,vector[i] to the output vector
+	    outputVector.push_back(data); //adds result to output vector
 	}
     }
 }
@@ -248,7 +248,7 @@ void CircularStringMatching::EditDistance(char *pattern, int m, char *text, int 
     delete[] D1;
 }
 
-void CircularStringMatching::verification(char *pattern, int m, char * window2m, int n, vector<vector<int>> &outputVector, int window2mStart)
+void CircularStringMatching::verification(char *pattern, int m, char * window2m, int n, vector<vector<unsigned int>> &outputVector, unsigned int window2mStart)
 {
     int rotation;
     int * editDistanceVector = new int[n + 2];
@@ -269,12 +269,12 @@ void CircularStringMatching::verification(char *pattern, int m, char * window2m,
     delete[] editDistanceVector;
 }
 
-void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector)
+void CircularStringMatching::printOutputVector(vector<vector<unsigned int>> &outputVector)
 {
     int i, j, Emin = INT_MAX;
 
     if (outputVector.size() >= 1) {
-	cout << "Best Match: " << endl;
+	cout << "First Best Match: " << endl;
 	cout << "position i" << "\trotation j" << "\tnum mismatches" << endl;
 	for (i = 0; i < outputVector.size(); i++) {
 	    if (outputVector[i][2] < Emin) {
@@ -291,18 +291,18 @@ void CircularStringMatching::printOutputVector(vector<vector<int>> &outputVector
 int CircularStringMatching::run()
 {
     //holds rotation of pattern, position of occurence and number of mismatches
-    vector<vector<int>> outputVector;
+    vector<vector<unsigned int>> outputVector;
     clock_t preprocessingTime, runningTime; //initializes variables which will hold time
-    runningTime = clock(); //sets it equal to clock 
+    runningTime = clock(); //start clock 
     int numberVerifications = 0;
     bool boolVerify = false;
           
     if (this->unverifiedWindowShift < 1) {
-	cerr << "The pattern you are using is too short" << endl;
+	cerr << "The pattern you are using is too short for the k provided." << endl;
 	return EXIT_FAILURE;
     }
     
-    string xx = this->pattern + this->pattern;
+    string xx = ( * this->pattern ) + ( * this->pattern );
     
     /*
      * 
@@ -321,14 +321,14 @@ int CircularStringMatching::run()
      * 
      */
     cout << "Starting searching process..." << endl;
-    int qpos, qIndex, total, pos = this->verifiedWindowShift;
+    unsigned int qpos, qIndex, total, pos = (unsigned int) this->verifiedWindowShift;
     while (pos < this->n) {
 
 	//figure out if we need to verify
 	unsigned int i;
 	total = 0;
 	for (qpos = pos - this->q, i = 0; qpos >= 0 && i < this->qGramBackwards; qpos--, i++) { //VII
-	    qIndex = this->getQIndex( (char *) this->text.substr(qpos, this->q).c_str());
+	    qIndex = this->getQIndex( (char *) ( * this->text ).substr(qpos, this->q).c_str());
 	    if ((this->M[qIndex]) < (this->c * this->q)){
 		boolVerify = true;
 		break;
@@ -342,13 +342,13 @@ int CircularStringMatching::run()
 
 	//verify
         if (boolVerify){
-	    int window2mStart = pos - ((int)this->m - (int)this->k);
-	    string w = this->text.substr(window2mStart, 2 * this->m);
-	    this->verification((char *) this->pattern.c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
+	    unsigned int window2mStart = pos - ((int)this->m - (int)this->k);
+	    string w = ( * this->text ).substr(window2mStart, 2 * this->m);
+	    this->verification((char *) ( * this->pattern ).c_str(), this->m, (char *) w.c_str(), w.length(), outputVector, window2mStart);
 	    numberVerifications += 1;
 	}
 
-	if (pos == this->n -1) {
+	if (pos == this->n - 1) {
 	    break;
 	}
 
@@ -377,7 +377,7 @@ int CircularStringMatching::run()
     return EXIT_SUCCESS;
 }
 
-CircularStringMatching::CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, char a)
+CircularStringMatching::CircularStringMatching(string * pattern, unsigned int m, string * text, unsigned int n, unsigned int k, char a)
 {
     this->a = a;
     this->initAlphabet();

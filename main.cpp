@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include <fstream>
 #include "CircularStringMatching.h"
 
 int main ( int argc, char** argv )
@@ -32,40 +33,37 @@ int main ( int argc, char** argv )
 			   "-a\tRequired. The sequence type (DNA or PROT)\n"
 			   "-k\tOptional. Maximum error, e.g. 2. Default := 0\n"
 			   "-h\tOptional. This help message\n";
-    char * t = (char *) "";
-    char * p = (char *) "";
+    string text;
+    string pattern;
     char a = '\0';
     unsigned int k = 0;
-    FILE * ft, * fp;
 
     unsigned int i;
     for ( i = 1; i < argc; i++ ) {
         if ( '-' == (int)argv[i][0] ) {
             switch ( (int)argv[i][1] ) {
                 case 't':
-                    t = argv[i + 1];
+		    text = string(argv[i + 1]);
                     break;
 
                 case 'f':
-                    if ( ( ft = fopen ( argv[i + 1], "r" ) ) == NULL ) {
-                        fprintf( stderr, "Input file f could not be opened!\n");
-                        return ( EXIT_FAILURE );
-                    } else {
-			size_t read_size = 0;
-                        fseek ( ft, 0, SEEK_END );
-                        unsigned long length = ftell ( ft );
-                        fseek ( ft, 0, SEEK_SET );
-                        t = (char *) malloc ( length + 1 );
-                        if ( t ) {
-                            read_size = fread ( t, 1, length, ft );
-                        }
-                        fclose ( ft );
-			t[length] = '\0';
-                    }
+		    {
+			ifstream ft (argv[i + 1], ios::in);
+			if (ft) {
+			    ft.seekg(0, ios::end);
+			    text.resize(ft.tellg());
+			    ft.seekg(0, ios::beg);
+			    ft.read(&text[0], text.size());
+			    ft.close();
+			} else {
+			    fprintf( stderr, "Error opening file passed via -f\n" );
+			    return EXIT_FAILURE;
+			}
+		    }
                     break;
 
                 case 'p':
-                    p = argv[i + 1];
+		    pattern = string(argv[i + 1]);
                     break;
 
 		case 'a':
@@ -84,21 +82,19 @@ int main ( int argc, char** argv )
 		    break;
 
                 case 'l':
-                    if ( ( fp = fopen ( argv[i + 1], "r" ) ) == NULL ) {
-                        fprintf( stderr, "Input file l could not be opened!\n");
-                        return ( EXIT_FAILURE );
-                    } else {
-			size_t read_size = 0;
-                        fseek ( fp, 0, SEEK_END );
-                        unsigned long length = ftell ( fp );
-                        fseek ( fp, 0, SEEK_SET );
-                        p = (char *) malloc ( length + 1 );
-                        if ( p ) {
-                            read_size = fread ( p, 1, length, fp );
-                        }
-                        fclose ( fp );
-			p[length] = '\0';
-                    }
+		    {
+			ifstream fp (argv[i + 1], ios::in);
+			if (fp) {
+			    fp.seekg(0, ios::end);
+			    pattern.resize(fp.tellg());
+			    fp.seekg(0, ios::beg);
+			    fp.read(&pattern[0], pattern.size());
+			    fp.close();
+			} else {
+			    fprintf( stderr, "Error opening file passed via -l\n" );
+			    return EXIT_FAILURE;
+			}
+		    }
                     break;
 
                 case 'k':
@@ -118,8 +114,8 @@ int main ( int argc, char** argv )
         }
     }
 
-    unsigned int n = strlen(t);
-    unsigned int m = strlen(p);
+    unsigned int n = text.size();
+    unsigned int m = pattern.size();
 
     if (n == 0 || m == 0 || a == '\0')
     {
@@ -129,15 +125,11 @@ int main ( int argc, char** argv )
     }
     else
     {
-	string pattern = string(p);
-	string text = string(t);
-
-	CircularStringMatching csm(pattern, m, text, n, k, a);
+	CircularStringMatching csm(&pattern, m, &text, n, k, a);
 	int run = csm.run();
 
 	if (run == EXIT_FAILURE) {
 	    fprintf ( stderr, "Circular String Matching process failed... exiting.\n" );
-	    free ( t );
 	    return EXIT_FAILURE;
 	}
     }

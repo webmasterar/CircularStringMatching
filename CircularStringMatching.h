@@ -70,7 +70,7 @@ private:
     /**
      * @var pattern The initial pattern being searched for
      */
-    string pattern;
+    string * pattern;
     /**
      * @var m The length of the pattern
      */
@@ -78,7 +78,7 @@ private:
     /**
      * @var text The text to search
      */
-    string text;
+    string * text;
     /**
      * @var n The length of the text
      */
@@ -180,7 +180,7 @@ private:
      * @param outputVector
      * @param window2mStart
      */
-    void checkVector(int *editDistanceVector, int n, int rotation, vector<vector<int>> &outputVector, int window2mStart);
+    void checkVector(int *editDistanceVector, int n, int rotation, vector<vector<unsigned int>> &outputVector, unsigned int window2mStart);
 
     /**
      * Verify
@@ -192,14 +192,14 @@ private:
      * @param outputVector
      * @param window2mStart
      */
-    void verification(char *pattern, int m, char *text, int n, vector<vector<int>> &outputVector, int window2mStart);
+    void verification(char *pattern, int m, char *text, int n, vector<vector<unsigned int>> &outputVector, unsigned int window2mStart);
 
     /**
      * Prints best match found
      *
      * @param outputVector
      */
-    void printOutputVector(vector<vector<int>> &outputVector);
+    void printOutputVector(vector<vector<unsigned int>> &outputVector);
 
     /**
      * Rotates a given cstring
@@ -230,7 +230,7 @@ public:
      * @param k The maximum number of errors permitted before skipping a window (inclusive)
      * @param a The alphabet of the sequence (DNA/Protein)
      */
-    CircularStringMatching(string pattern, unsigned int m, string text, unsigned int n, unsigned int k, char a);
+    CircularStringMatching(string * pattern, unsigned int m, string * text, unsigned int n, unsigned int k, char a);
     
     /**
      * Free memory
